@@ -1,0 +1,25 @@
+{
+  "title": "Gerenciamento de Usuários e Grupos no Linux",
+  "description": "Atividade prática de Introdução à Informática sobre gerenciamento de usuários e grupos no Linux.",
+  "details": {
+    "intro": {
+      "text": "intro.md"
+    },
+    "steps": [
+      {
+        "title": "Gerenciamento de grupos",
+        "text": "step1.md"
+      },
+      {
+        "title": "Gerenciamento de usuários",
+        "text": "step2.md"
+      }
+    ],
+    "finish": {
+      "text": "finish.md"
+    }
+  },
+  "backend": {
+    "imageid": "ubuntu"
+  }
+}
