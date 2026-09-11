@@ -10,6 +10,9 @@ BASE=$(cd "$(dirname "$0")/../usuarios-grupos" && pwd)
 install -d /usr/local/lib/laboratorio
 install -m 755 "$BASE"/assets/verify-step*.sh /usr/local/lib/laboratorio/
 install -m 755 "$BASE"/assets/identificar-aluno "$BASE"/assets/gerar-comprovante /usr/local/bin/
+install -m 755 "$BASE"/assets/enviar-comprovante /usr/local/bin/
+# Nunca carregar uma URL real nos testes.
+: > /usr/local/lib/laboratorio/drive-upload-url
 CHECKS=/usr/local/lib/laboratorio
 TOTAL=0
 passa() {
@@ -186,4 +189,53 @@ passa bash -c "printf '20261234\n' | identificar-aluno"
 NOVA_SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
 [ "$NOVA_SESSAO" != "$SESSAO" ]
 passa bash "$CHECKS/verify-step0.sh"
+# Exercita o cliente de upload com rede simulada, sem dados enviados ao Google.
+passa gerar-comprovante
+TXT="/root/comprovantes/usuarios-grupos_20261234_${NOVA_SESSAO}.txt"
+falha enviar-comprovante
+mkdir -p /tmp/lab-mock-bin
+cat > /tmp/lab-mock-bin/curl <<'MOCK'
+#!/bin/bash
+set -eu
+printf 'chamado\n' >> /tmp/lab-curl-calls
+case "${LAB_CURL_MODE:-sucesso}" in
+    rede) exit 7 ;;
+    html) printf '<html>Login Google</html>'; exit 0 ;;
+    limite) printf 'ERRO=LIMITE_DIARIO'; exit 0 ;;
+    errado) printf 'OK\nARQUIVO=outro.txt\nCODIGO=SHA256:errado'; exit 0 ;;
+esac
+TXT=''
+for ARG in "$@"; do
+    case "$ARG" in @*) TXT=${ARG#@} ;; esac
+done
+[ -f "$TXT" ]
+printf 'OK\nARQUIVO=%s\nCODIGO=%s' "$(basename "$TXT")" "$(sed -n 's/^CODIGO=//p' "$TXT")"
+MOCK
+chmod +x /tmp/lab-mock-bin/curl
+export PATH="/tmp/lab-mock-bin:$PATH"
+printf 'https://exemplo.invalid/exec\n' > "$CHECKS/drive-upload-url"
+falha enviar-comprovante
+[ ! -e /tmp/lab-curl-calls ]
+printf 'https://script.google.com/macros/s/TESTE_SEM_REDE/exec\n' > "$CHECKS/drive-upload-url"
+passa enviar-comprovante
+grep -q 'Recebimento confirmado' /tmp/lab-test-output
+passa gerar-comprovante
+grep -q 'Recebimento confirmado' /tmp/lab-test-output
+cp "$TXT" /tmp/lab-before-upload.txt
+for LAB_CURL_MODE in rede html limite errado; do
+    export LAB_CURL_MODE
+    falha enviar-comprovante
+    cmp "$TXT" /tmp/lab-before-upload.txt
+done
+export LAB_CURL_MODE=rede
+passa gerar-comprovante
+grep -q 'envio ao Drive não foi confirmado' /tmp/lab-test-output
+[ -f "$TXT" ]
+export LAB_CURL_MODE=sucesso
+CHAMADAS=$(wc -l < /tmp/lab-curl-calls)
+chmod 777 /empresa/administracao
+falha enviar-comprovante
+[ "$(wc -l < /tmp/lab-curl-calls)" -eq "$CHAMADAS" ]
+chmod 770 /empresa/administracao
+passa enviar-comprovante
 printf 'OK: %s verificações positivas e negativas no Ubuntu.\n' "$TOTAL"

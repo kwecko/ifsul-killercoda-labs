@@ -1,0 +1,55 @@
+#!/bin/bash
+set -euo pipefail
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Retorne à sessão de root antes de enviar o comprovante."
+    exit 1
+fi
+CONFIG="/usr/local/lib/laboratorio/drive-upload-url"
+if [ ! -s "$CONFIG" ]; then
+    echo "Envio ao Drive ainda não configurado pelo professor. Baixe o TXT pelo Editor."
+    exit 1
+fi
+URL=$(cat "$CONFIG")
+if ! [[ "$URL" =~ ^https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec$ ]]; then
+    echo "A URL de recebimento do Drive não está configurada corretamente."
+    exit 1
+fi
+
+for etapa in 0 1 2 3 4 5 6; do
+    if ! bash "/usr/local/lib/laboratorio/verify-step$etapa.sh"; then
+        echo "Envio bloqueado: requisito pendente na etapa $etapa."
+        exit 1
+    fi
+done
+MATRICULA=$(sed -n 's/^MATRICULA=//p' /root/.laboratorio-aluno)
+SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
+NOME="usuarios-grupos_${MATRICULA}_${SESSAO}.txt"
+TXT="/root/comprovantes/$NOME"
+if [ ! -f "$TXT" ] || [ "$(wc -c < "$TXT")" -gt 4096 ]; then
+    echo "Gere primeiro o comprovante TXT com gerar-comprovante."
+    exit 1
+fi
+CODIGO=$(sed -n 's/^CODIGO=//p' "$TXT")
+if ! [[ "$CODIGO" =~ ^SHA256:[0-9a-f]{64}$ ]]; then
+    echo "Comprovante inválido. Gere novamente com gerar-comprovante."
+    exit 1
+fi
+# -L segue o redirecionamento do ContentService; não forçar POST após o 302.
+if ! RESPOSTA=$(curl --silent --show-error --fail --location \
+    --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 45 \
+    --max-filesize 4096 --header 'Content-Type: text/plain; charset=utf-8' \
+    --data-binary "@$TXT" "$URL"); then
+    echo "Envio sem confirmação. O TXT permanece salvo; tente enviar-comprovante novamente."
+    exit 1
+fi
+ESPERADA=$(printf 'OK\nARQUIVO=%s\nCODIGO=%s' "$NOME" "$CODIGO")
+if [ "$RESPOSTA" != "$ESPERADA" ]; then
+    case "$RESPOSTA" in
+        ERRO=RECEBIMENTO_ENCERRADO|ERRO=LIMITE_DIARIO|ERRO=LIMITE_VERSOES)
+            echo "Recebimento indisponível ou limite atingido. Avise o professor e baixe o TXT." ;;
+        *) echo "O Drive não confirmou o recebimento. Tente novamente ou entregue o TXT baixado." ;;
+    esac
+    exit 1
+fi
+printf 'Recebimento confirmado no Google Drive: %s\n' "$NOME"

@@ -61,3 +61,12 @@ printf '\nComprovante gerado: %s\n\n' "$DESTINO"
 cat "$DESTINO"
 printf '\nBaixe o arquivo pelo Editor: abra /root/comprovantes, clique com o botão direito no TXT e escolha Download.\n'
 printf 'Envie o arquivo TXT baixado na atividade do Moodle, antes de encerrar o ambiente.\n'
+
+if [ -s /usr/local/lib/laboratorio/drive-upload-url ]; then
+    if ! enviar-comprovante; then
+        echo "Comprovante gerado localmente, mas o envio ao Drive não foi confirmado."
+        echo "Para repetir apenas o envio, execute enviar-comprovante."
+    fi
+else
+    echo "Envio automático ao Drive ainda não configurado; use o download pelo Editor."
+fi

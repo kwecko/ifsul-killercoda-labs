@@ -61,6 +61,15 @@
           "file": "verify-step*.sh",
           "target": "/usr/local/lib/laboratorio/",
           "chmod": "+x"
+        },
+        {
+          "file": "enviar-comprovante",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "drive-upload-url",
+          "target": "/usr/local/lib/laboratorio/"
         }
       ]
     }

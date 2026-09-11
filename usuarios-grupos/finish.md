@@ -14,6 +14,16 @@ Para localizar seu arquivo:
 
 `ls -lh /root/comprovantes/*.txt`{{exec}}
 
+## Entrega no Google Drive
+
+Quando o envio automático estiver configurado pelo professor, `gerar-comprovante` também enviará o TXT para a pasta de entrega. Aguarde a mensagem **Recebimento confirmado no Google Drive**. Apenas gerar o arquivo não confirma o envio.
+
+Se houver falha de conexão, mantenha a sessão aberta e tente novamente sem gerar outro comprovante:
+
+`enviar-comprovante`{{exec}}
+
+Se o serviço estiver indisponível ou ainda não configurado, baixe o TXT e entregue conforme a orientação do professor. O envio ao Drive não realiza a submissão no Moodle; se a atividade do Moodle exigir anexo, envie o TXT por lá também.
+
 ## Baixar o arquivo
 
 1. Clique na aba **Editor**, no topo do ambiente Killercoda.
