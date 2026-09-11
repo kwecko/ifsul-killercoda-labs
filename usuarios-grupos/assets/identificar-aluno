@@ -1,4 +1,12 @@
 #!/bin/bash
+set -e
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Execute este comando na sessão de root."
+    exit 1
+fi
+
+umask 077
 
 ARQUIVO="/root/.laboratorio-aluno"
 
@@ -16,7 +24,7 @@ echo " IDENTIFICAÇÃO DO ALUNO"
 echo "========================================"
 echo
 
-read -p "Informe sua matrícula: " MATRICULA
+read -r -p "Informe sua matrícula: " MATRICULA
 
 if ! [[ "$MATRICULA" =~ ^[0-9]+$ ]]; then
     echo "Matrícula inválida."

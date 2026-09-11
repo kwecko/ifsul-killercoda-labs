@@ -12,8 +12,9 @@ verificar_usuario() {
         return
     fi
 
-    # Verifica se o diretório pessoal existe
-    if [ ! -d "/home/$USUARIO" ]; then
+    # Usa o diretório pessoal registrado na conta, inclusive caminhos personalizados.
+    HOME_USUARIO=$(getent passwd "$USUARIO" | cut -d: -f6)
+    if [ -z "$HOME_USUARIO" ] || [ ! -d "$HOME_USUARIO" ]; then
         ERROS=$((ERROS + 1))
     fi
 

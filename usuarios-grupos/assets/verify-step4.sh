@@ -27,8 +27,10 @@ verificar_diretorio() {
     fi
 }
 
-# Diretório principal
+# Diretório principal: todos precisam poder atravessá-lo.
 if [ ! -d "/empresa" ]; then
+    ERROS=$((ERROS + 1))
+elif [ "$(stat -c "%a" /empresa 2>/dev/null)" != "755" ]; then
     ERROS=$((ERROS + 1))
 fi
 

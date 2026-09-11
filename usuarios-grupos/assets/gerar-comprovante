@@ -1,13 +1,39 @@
 #!/bin/bash
 
+if [ "$EUID" -ne 0 ]; then
+    echo "Retorne à sessão de root com exit antes de gerar o comprovante."
+    exit 1
+fi
+
 ARQUIVO="/root/.laboratorio-aluno"
+VERIFICACOES="/usr/local/lib/laboratorio"
 
 if [ ! -f "$ARQUIVO" ]; then
     echo "Aluno não identificado."
     exit 1
 fi
 
-source "$ARQUIVO"
+# Reutiliza os mesmos critérios dos botões CHECK, sem duplicar as regras.
+ETAPAS=("Identificação" "Grupos" "Usuários" "Configuração das contas" "Diretórios" "Permissões" "Teste de acesso e arquivos")
+ERROS=0
+for etapa in 0 1 2 3 4 5 6; do
+    SCRIPT="$VERIFICACOES/verify-step$etapa.sh"
+    if [ ! -f "$SCRIPT" ]; then
+        echo "Verificação indisponível: ${ETAPAS[$etapa]}. Reinicie o laboratório em uma nova sessão."
+        ERROS=$((ERROS + 1))
+    elif ! bash "$SCRIPT"; then
+        echo "Requisito pendente: ${ETAPAS[$etapa]}."
+        ERROS=$((ERROS + 1))
+    fi
+done
+if [ "$ERROS" -ne 0 ]; then
+    echo "Comprovante não emitido. Corrija os requisitos indicados e tente novamente."
+    exit 1
+fi
+
+MATRICULA=$(sed -n 's/^MATRICULA=//p' "$ARQUIVO")
+SESSAO=$(sed -n 's/^SESSAO=//p' "$ARQUIVO")
+INICIO=$(sed -n 's/^INICIO="\(.*\)"$/\1/p' "$ARQUIVO")
 
 DATA_FINAL=$(date "+%Y-%m-%d %H:%M:%S")
 

@@ -8,7 +8,7 @@ if ! id ana > /dev/null 2>&1; then
 fi
 
 # Verifica se existe senha definida
-STATUS=$(passwd -S ana 2>/dev/null | awk '{print $2}')
+STATUS=$(LC_ALL=C passwd -S ana 2>/dev/null | awk '{print $2}')
 
 if [ "$STATUS" != "P" ]; then
     ERROS=$((ERROS + 1))
@@ -22,7 +22,7 @@ if [ "$SHELL_USUARIO" != "/bin/bash" ]; then
 fi
 
 # Verifica descrição/GECOS
-DESCRICAO=$(getent passwd ana | cut -d: -f5)
+DESCRICAO=$(getent passwd ana | cut -d: -f5 | cut -d, -f1)
 
 if [ "$DESCRICAO" != "Ana - Administração" ]; then
     ERROS=$((ERROS + 1))

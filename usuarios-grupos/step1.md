@@ -9,3 +9,5 @@ Crie os seguintes grupos:
 - `desenvolvimento`
 
 Após realizar as configurações, utilize os comandos que considerar adequados para verificar se os grupos foram criados corretamente.
+
+Pressione **CHECK** para verificar esta etapa.

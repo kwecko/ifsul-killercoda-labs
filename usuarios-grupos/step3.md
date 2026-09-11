@@ -10,4 +10,10 @@ Realize as seguintes tarefas:
 
 `Ana - Administração`
 
+Ao digitar a senha, o terminal não exibe os caracteres. Isso é esperado. Use uma senha apenas para este laboratório.
+
+A descrição corresponde ao nome/comentário da conta (campo GECOS).
+
 Após realizar as configurações, verifique os dados da conta utilizando os comandos que considerar adequados.
+
+Pressione **CHECK** para verificar esta etapa.
