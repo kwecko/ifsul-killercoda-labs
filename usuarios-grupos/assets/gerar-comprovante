@@ -69,14 +69,17 @@ printf 'CODIGO=SHA256:%s\n' "$CODIGO" >> "$TEMPORARIO"
 HISTORICO="$DIRETORIO/${LAB_ID}_${MATRICULA}_${SESSAO}_${CODIGO}_historico.log"
 if [ ! -e "$HISTORICO" ]; then
     SNAPSHOT=$(mktemp "$DIRETORIO/.historico.XXXXXXXXXX")
-    trap 'rm -f -- "$TEMPORARIO" "${SNAPSHOT:-}"' EXIT
+    LIMPO=$(mktemp "$DIRETORIO/.historico-legivel.XXXXXXXXXX")
+    trap 'rm -f -- "$TEMPORARIO" "${SNAPSHOT:-}" "${LIMPO:-}"' EXIT
     cp -- "$REGISTRO" "$SNAPSHOT"
     if [ "$(wc -c < "$SNAPSHOT")" -gt 1048576 ]; then
         echo "Registro maior que 1 MiB. Consulte o professor."
         exit 1
     fi
-    chmod 600 "$SNAPSHOT"
-    mv -fT -- "$SNAPSHOT" "$HISTORICO"
+    perl "$VERIFICACOES/normalizar-registro.pl" "$SNAPSHOT" > "$LIMPO"
+    chmod 600 "$LIMPO"
+    mv -fT -- "$LIMPO" "$HISTORICO"
+    rm -f -- "$SNAPSHOT"
 fi
 chmod 644 "$TEMPORARIO"
 # Publica somente o TXT completo. Nova geração substitui o da mesma sessão.

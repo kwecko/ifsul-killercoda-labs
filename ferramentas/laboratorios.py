@@ -8,7 +8,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 COMANDOS = ('identificar-aluno', 'iniciar-registro', 'gerar-comprovante', 'enviar-comprovante')
-COMPARTILHADOS = COMANDOS + ('verify-step0.sh', 'laboratorio.sh')
+COMPARTILHADOS = COMANDOS + ('verify-step0.sh', 'laboratorio.sh', 'normalizar-registro.pl')
 MARCA_INICIO = '// BEGIN CATALOGO GERADO'
 MARCA_FIM = '// END CATALOGO GERADO'
 
@@ -87,7 +87,7 @@ def sincronizar(root=ROOT, check=False):
         assets = details.setdefault('assets', {})
         gerados = [dict(file=n, target='/usr/local/bin/', chmod='+x') for n in COMANDOS]
         gerados += [dict(file='verify-step*.sh', target='/usr/local/lib/laboratorio/', chmod='+x')]
-        gerados += [dict(file=n, target='/usr/local/lib/laboratorio/') for n in ('laboratorio.sh', 'laboratorio.conf', 'drive-upload-url')]
+        gerados += [dict(file=n, target='/usr/local/lib/laboratorio/') for n in ('laboratorio.sh', 'laboratorio.conf', 'drive-upload-url', 'normalizar-registro.pl')]
         nomes = {a['file'] for a in gerados}
         extras = [a for a in assets.get('host01', []) if a['file'] not in nomes]
         assets['host01'] = gerados + extras

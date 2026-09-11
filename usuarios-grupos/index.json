@@ -83,6 +83,10 @@
         {
           "file": "drive-upload-url",
           "target": "/usr/local/lib/laboratorio/"
+        },
+        {
+          "file": "normalizar-registro.pl",
+          "target": "/usr/local/lib/laboratorio/"
         }
       ]
     }

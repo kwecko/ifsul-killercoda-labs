@@ -80,6 +80,14 @@ def main():
         assert b'REGISTRO_ROOT_OK\r\n' in after
         assert b'REGISTRO_RETOMADO_OK\r\n' in after
         assert after.count(b'Script started on') == 2
+        clean = subprocess.check_output(['docker', 'exec', name, 'bash', '-c',
+            'perl /lab/comum/assets/normalizar-registro.pl /root/registros/*.log'])
+        assert b'REGISTRO_ROOT_OK\n' in clean
+        assert b'REGISTRO_JULIA_OK\n' in clean
+        assert b'REGISTRO_RETOMADO_OK\n' in clean
+        assert b'\x1b' not in clean and b'\r' not in clean
+        assert b'SEGREDO_NAO_DEVE_SER_GRAVADO_9x' not in clean
+        assert log() == after
         send('exit')
         process.wait(timeout=15)
         assert process.returncode == 0

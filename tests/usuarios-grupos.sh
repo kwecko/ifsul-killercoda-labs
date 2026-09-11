@@ -8,6 +8,7 @@ set -euo pipefail
 
 BASE=$(cd "$(dirname "$0")/../usuarios-grupos" && pwd)
 install -d /usr/local/lib/laboratorio
+install -m 644 "$BASE"/assets/normalizar-registro.pl /usr/local/lib/laboratorio/
 install -m 755 "$BASE"/assets/verify-step*.sh /usr/local/lib/laboratorio/
 install -m 755 "$BASE"/assets/identificar-aluno "$BASE"/assets/gerar-comprovante /usr/local/bin/
 install -m 755 "$BASE"/assets/enviar-comprovante "$BASE"/assets/iniciar-registro /usr/local/bin/
@@ -195,7 +196,7 @@ passa bash -c "printf '20261234\nJosé da Silva\n' | identificar-aluno"
 NOVA_SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
 [ "$NOVA_SESSAO" != "$SESSAO" ]
 passa bash "$CHECKS/verify-step0.sh"
-printf 'registro simulado da nova sessão\n' > "/root/registros/$NOVA_SESSAO.log"
+printf '\033[32mregistro simulado da nova sessão\033[0m\r\n' > "/root/registros/$NOVA_SESSAO.log"
 # Exercita o cliente de upload com rede simulada, sem dados enviados ao Google.
 passa gerar-comprovante
 TXT="/root/comprovantes/usuarios-grupos_20261234_${NOVA_SESSAO}.txt"
@@ -231,6 +232,9 @@ falha enviar-comprovante
 [ ! -e /tmp/lab-curl-calls ]
 printf 'https://script.google.com/macros/s/TESTE_SEM_REDE/exec\n' > "$CHECKS/drive-upload-url"
 passa enviar-comprovante
+printf 'registro simulado da nova sessão\n' > /tmp/registro-esperado.log
+cmp /tmp/registro-esperado.log /tmp/mock-registro.log
+grep -q $'\033' "/root/registros/$NOVA_SESSAO.log"
 grep -q 'Recebimento confirmado' /tmp/lab-test-output
 passa gerar-comprovante
 grep -q 'Recebimento confirmado' /tmp/lab-test-output

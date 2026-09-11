@@ -3,6 +3,7 @@
 set -euo pipefail
 [ -f /.dockerenv ] && [ "${LAB_TEST_CONTAINER:-}" = 1 ] || exit 1
 install -d /usr/local/lib/laboratorio
+install -m 644 /cenario/assets/normalizar-registro.pl /usr/local/lib/laboratorio/
 install -m 755 /cenario/assets/verify-step*.sh /usr/local/lib/laboratorio/
 install -m 644 /cenario/assets/laboratorio.sh /cenario/assets/laboratorio.conf /usr/local/lib/laboratorio/
 install -m 755 /cenario/assets/identificar-aluno /cenario/assets/gerar-comprovante /cenario/assets/enviar-comprovante /cenario/assets/iniciar-registro /usr/local/bin/
