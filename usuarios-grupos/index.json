@@ -44,23 +44,23 @@
     ],
     "finish": {
       "text": "finish.md"
+    },
+    "assets": {
+      "host01": [
+        {
+          "file": "identificar-aluno",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "gerar-comprovante",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        }
+      ]
     }
   },
   "backend": {
     "imageid": "ubuntu"
-  },
-"assets": {
-  "host01": [
-    {
-      "file": "identificar-aluno",
-      "target": "/root/",
-      "chmod": "+x"
-    },
-    {
-      "file": "gerar-comprovante",
-      "target": "/root/",
-      "chmod": "+x"
-    }
-  ]
-}
+  }
 }
