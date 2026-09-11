@@ -8,7 +8,8 @@
     "steps": [
       {
         "title": "Gerenciamento de grupos",
-        "text": "step1.md"
+        "text": "step1.md",
+        "verify": "verify-step1.sh"
       },
       {
         "title": "Gerenciamento de usuários",
