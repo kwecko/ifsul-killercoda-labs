@@ -61,6 +61,18 @@ usermod -s /bin/bash -c 'Ana - Administração' ana
 passa bash "$CHECKS/verify-step3.sh"
 usermod -c 'Ana - Administração,,,' ana
 passa bash "$CHECKS/verify-step3.sh"
+usermod -c 'Ana - Administracao' ana
+passa bash "$CHECKS/verify-step3.sh"
+usermod -c '  Ana - Administração  ,,,' ana
+passa bash "$CHECKS/verify-step3.sh"
+usermod -c 'Ana - Suporte' ana
+falha bash "$CHECKS/verify-step3.sh"
+usermod -c 'Ana - Administrador' ana
+falha bash "$CHECKS/verify-step3.sh"
+usermod -c 'Ana - Administração' ana
+passa bash "$CHECKS/verify-step3.sh"
+usermod -c 'Ana - Administração' ana
+
 passwd -l ana >/dev/null
 falha bash "$CHECKS/verify-step3.sh"
 passwd -u ana >/dev/null

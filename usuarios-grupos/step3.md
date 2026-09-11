@@ -12,7 +12,17 @@ Realize as seguintes tarefas:
 
 Ao digitar a senha, o terminal não exibe os caracteres. Isso é esperado. Use uma senha apenas para este laboratório.
 
-A descrição corresponde ao nome/comentário da conta (campo GECOS).
+A descrição corresponde ao nome/comentário da conta (campo GECOS). Como contém espaços, coloque o texto inteiro entre aspas ao usá-lo em um comando. Por exemplo:
+
+`usermod -c "Ana - Administração" ana`{{exec}}
+
+A versão sem acentos, `Ana - Administracao`, também é aceita nesta atividade.
+
+Para conferir a descrição registrada:
+
+`getent passwd ana | cut -d: -f5`{{exec}}
+
+O botão **CHECK** verifica os três requisitos: senha ativa, shell `/bin/bash` e descrição. Se houver falha, confira também a senha e o shell.
 
 Após realizar as configurações, verifique os dados da conta utilizando os comandos que considerar adequados.
 
