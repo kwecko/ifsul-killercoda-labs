@@ -16,6 +16,11 @@
         "text": "step2.md",
         "verify": "verify-step2.sh"
       }
+      {
+        "title": "Configuração das contas",
+        "text": "step3.md",
+        "verify": "verify-step3.sh"
+      }
     ],
     "finish": {
       "text": "finish.md"
