@@ -53,14 +53,14 @@
     "host01": [
       {
         "file": "identificar-aluno",
-        "target": "/usr/local/bin/",
+        "target": "/usr/local/bin/identificar-aluno",
         "chmod": "+x"
-    },
-    {
-      "file": "gerar-comprovante",
-      "target": "/usr/local/bin/",
-      "chmod": "+x"
-    }
-  ]
+      },
+      {
+        "file": "gerar-comprovante",
+        "target": "/usr/local/bin/gerar-comprovante",
+        "chmod": "+x"
+      }
+    ]
   }
 }
