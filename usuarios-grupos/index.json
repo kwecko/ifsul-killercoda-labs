@@ -55,12 +55,12 @@
         "file": "identificar-aluno",
         "target": "/usr/local/bin/",
         "chmod": "+x"
-      },
-      {
-        "file": "gerar-comprovante",
-        "target": "/usr/local/bin/",
-        "chmod": "+x"
-      }
+    },
+    {
+      "file": "gerar-comprovante",
+      "target": "/usr/local/bin/",
+      "chmod": "+x"
+    }
   ]
-}
+  }
 }
