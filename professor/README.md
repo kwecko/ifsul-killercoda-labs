@@ -6,10 +6,12 @@ Requer Python 3.8 ou superior, sem dependências adicionais. Execute no computad
 python3 professor/validar_comprovante.py /caminho/comprovante.txt
 python3 professor/validar_comprovante.py /caminho/entregas/*.txt
 python3 professor/validar_comprovante.py --matricula 202612345 /caminho/comprovante.txt
-python3 professor/validar_comprovante.py --conferir-nome /caminho/comprovante.txt
+python3 professor/validar_comprovante.py --laboratorio usuarios-grupos --conferir-nome /caminho/comprovante.txt
 ```
 
 Coloque caminhos com espaços entre aspas. Informe arquivos, não pastas ou ZIPs; extraia primeiro os arquivos baixados do Moodle. Em Windows, informe os arquivos individualmente se o terminal não expandir `*.txt`.
+
+O programa lê `laboratorios.json` ao lado do script, gerado pelo comando de sincronização. Distribua os dois arquivos juntos. Ele aceita apenas laboratórios cadastrados; `--laboratorio ID` também exige a atividade esperada. Laboratórios com recebimento desativado continuam reconhecidos localmente para permitir avaliar entregas anteriores.
 
 O programa verifica a serialização exata, os campos e sua ordem, versão, laboratório, matrícula, UUID, data válida em UTC, resultado e SHA-256. Ele apenas lê os arquivos, não os altera e não executa seu conteúdo. `--matricula` compara com o número informado pelo professor, preservando zeros à esquerda; se houver vários arquivos, compara todos com essa mesma matrícula.
 
@@ -21,7 +23,7 @@ Saídas: **CONSISTENTE** significa formato e checksum corretos; **INVÁLIDO** in
 
 Esta pasta está fora de `usuarios-grupos/`, não possui `index.json` e não é referenciada nos assets do cenário. Portanto, o script não é instalado na VM pelo fluxo configurado do Killercoda. Ele pode ser versionado no GitHub; se o repositório for público, seu código continuará público. A proteção não depende de escondê-lo.
 
-Contrato: [formato v1](../docs/comprovante-v1.md).
+Contratos: [formato v2 com nome](../docs/comprovante-v2.md) e [formato v1 anterior](../docs/comprovante-v1.md). O validador aceita ambos e exibe o nome quando presente.
 
 Testes locais:
 

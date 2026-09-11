@@ -25,6 +25,21 @@ def com_hash(payload):
 
 
 class ValidacaoTests(unittest.TestCase):
+    def test_outro_laboratorio_cadastrado(self):
+        txt = com_hash(PAYLOAD.replace(b'usuarios-grupos', b'arquivos-diretorios'))
+        with self.assertRaises(mod.ComprovanteInvalido):
+            mod.validar(txt)
+        self.assertEqual(mod.validar(txt, {'arquivos-diretorios': {}})['LABORATORIO'], 'arquivos-diretorios')
+
+    def test_nome_v2(self):
+        payload = PAYLOAD.replace(b'VERSAO=1', b'VERSAO=2').replace(b'SESSAO=', 'NOME=José da Silva\nSESSAO='.encode())
+        self.assertEqual(mod.validar(com_hash(payload))['NOME'], 'José da Silva')
+        with self.assertRaises(mod.ComprovanteInvalido):
+            mod.validar(com_hash(payload).replace('José'.encode(), b'Jose'))
+        for nome in ('', '   ', 'Nome\tTeste', 'A' * 201):
+            with self.subTest(nome=nome), self.assertRaises(mod.ComprovanteInvalido):
+                mod.validar(com_hash(payload.replace('José da Silva'.encode(), nome.encode())))
+
     def test_vetor_documentado(self):
         self.assertEqual(mod.validar(VETOR)['MATRICULA'], '202612345')
         self.assertIn(VETOR.decode(), (ROOT / 'docs/comprovante-v1.md').read_text())
@@ -86,6 +101,8 @@ class ValidacaoTests(unittest.TestCase):
             self.assertIn('Aviso: nome diferente', texto)
             self.assertEqual(self.executar(['--conferir-nome', str(arquivo)])[0], 1)
             self.assertEqual(self.executar(['--matricula', '202612345', str(arquivo)])[0], 0)
+            self.assertEqual(self.executar(['--laboratorio', 'usuarios-grupos', str(arquivo)])[0], 0)
+            self.assertEqual(self.executar(['--laboratorio', 'outro', str(arquivo)])[0], 1)
             self.assertEqual(self.executar(['--matricula', '0202612345', str(arquivo)])[0], 1)
             esperado = arquivo.with_name('usuarios-grupos_202612345_550e8400-e29b-41d4-a716-446655440000.txt')
             arquivo.rename(esperado)

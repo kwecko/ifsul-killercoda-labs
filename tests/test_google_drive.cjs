@@ -20,7 +20,7 @@ function setup(code = source) {
     PropertiesService: {getScriptProperties: () => ({getProperty: key => props[key], setProperty: (key, value) => {props[key] = value;}})},
     LockService: {getScriptLock: () => ({tryLock: () => state.locked = !state.busy, hasLock: () => state.locked, releaseLock: () => {state.locked = false;}})},
     DriveApp: {getFolderById: id => {
-      assert.equal(id, '1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm'); state.reads++;
+      assert.equal(id, state.expectedFolder || '1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm'); state.reads++;
       return {
         getFilesByName: name => {
           const matches = files.filter(f => f.name === name); let i = 0;
@@ -111,5 +111,27 @@ test('rejeita pacote inválido e registro vazio ou excessivo', () => {
     assert.equal(s.post(text, 'application/json'), 'ERRO=FORMATO_INVALIDO');
   }
   assert.equal(s.files.length, 0);
+});
+test('TXT v2 conserva nome UTF-8 e aceita reenvio sem duplicação', () => {
+  const s = setup(); const p = payload.replace('VERSAO=1', 'VERSAO=2').replace('SESSAO=', 'NOME=José da Silva\nSESSAO=');
+  assert.match(s.post(pacote(receipt(p)), 'application/json'), /^OK\n/);
+  assert.match(s.post(pacote(receipt(p)), 'application/json'), /^OK\n/);
+  assert.equal(s.files.length, 2); assert.equal(s.files[1].text, receipt(p));
+  for (const nome of ['', ' Nome', 'A'.repeat(201), 'Ana\tSilva']) {
+    assert.equal(s.post(pacote(receipt(p.replace('José da Silva', nome))), 'application/json'), 'ERRO=FORMATO_INVALIDO');
+  }
+});
+test('outro laboratório cadastrado usa sua pasta e seu nome de arquivo', () => {
+  const code = source.replace('// END CATALOGO GERADO', 'LABORATORIOS["arquivos-diretorios"] = {recebimento_ativo: true, pasta_drive: "pasta-teste"};\n// END CATALOGO GERADO');
+  const s = setup(code); s.state.expectedFolder = 'pasta-teste';
+  const txt = receipt(payload.replace('usuarios-grupos', 'arquivos-diretorios'));
+  assert.match(s.post(pacote(txt), 'application/json'), /ARQUIVO=arquivos-diretorios_/);
+  assert.equal(s.files.length, 2); assert.match(s.files[1].name, /^arquivos-diretorios_/);
+});
+test('laboratório cadastrado mas desativado não recebe arquivos', () => {
+  const code = source.replace('// END CATALOGO GERADO', 'LABORATORIOS["usuarios-grupos"].recebimento_ativo = false;\n// END CATALOGO GERADO');
+  const s = setup(code);
+  assert.equal(s.post(pacote(), 'application/json'), 'ERRO=FORMATO_INVALIDO');
+  assert.equal(s.state.reads, 0);
 });
 console.log(`${count} testes do receptor passaram (serviços Google simulados).`);

@@ -53,7 +53,17 @@
           "chmod": "+x"
         },
         {
+          "file": "iniciar-registro",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
           "file": "gerar-comprovante",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "enviar-comprovante",
           "target": "/usr/local/bin/",
           "chmod": "+x"
         },
@@ -63,18 +73,16 @@
           "chmod": "+x"
         },
         {
-          "file": "enviar-comprovante",
-          "target": "/usr/local/bin/",
-          "chmod": "+x"
+          "file": "laboratorio.sh",
+          "target": "/usr/local/lib/laboratorio/"
+        },
+        {
+          "file": "laboratorio.conf",
+          "target": "/usr/local/lib/laboratorio/"
         },
         {
           "file": "drive-upload-url",
           "target": "/usr/local/lib/laboratorio/"
-        },
-        {
-          "file": "iniciar-registro",
-          "target": "/usr/local/bin/",
-          "chmod": "+x"
         }
       ]
     }

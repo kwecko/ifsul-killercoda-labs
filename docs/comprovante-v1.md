@@ -1,5 +1,7 @@
 # Comprovante TXT — formato v1
 
+Formato anterior, mantido para leitura dos comprovantes já emitidos. A emissão atual usa [v2, com nome completo](comprovante-v2.md).
+
 ## Emissão no Killercoda
 
 `identificar-aluno` mantém o registro existente em `/root/.laboratorio-aluno`: matrícula numérica, UUID completo gerado por `/proc/sys/kernel/random/uuid` e início da atividade. A matrícula é texto, preservando zeros à esquerda. Não se abrevia o UUID para oito caracteres; usa-se o identificador completo para reduzir colisões. O mesmo registro é reutilizado na sessão.

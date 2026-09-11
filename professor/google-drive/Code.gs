@@ -1,5 +1,13 @@
 // Instalar no Google Apps Script da conta do professor; não enviar à VM.
-const PASTA_ID = '1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm';
+// BEGIN CATALOGO GERADO
+const LABORATORIOS = {
+  "usuarios-grupos": {
+    "titulo": "Gerenciamento de Usuários e Grupos no Linux",
+    "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",
+    "recebimento_ativo": true
+  }
+};
+// END CATALOGO GERADO
 const RECEBIMENTO_ATIVO = true;
 const LIMITE_DIARIO = 200;
 const LIMITE_VERSOES = 5;
@@ -17,18 +25,20 @@ function sha256_(texto) {
 }
 
 function validarTxt_(texto) {
-  if (typeof texto !== 'string' || texto.length > MAX_BYTES || /[^\x00-\x7f]/.test(texto) || texto.includes('\r') || !texto.endsWith('\n')) {
+  if (typeof texto !== 'string' || texto.length > MAX_BYTES || texto.includes('\r') || !texto.endsWith('\n')) {
     throw new Error('FORMATO_INVALIDO');
   }
   const linhas = texto.slice(0, -1).split('\n');
   const campos = ['VERSAO', 'LABORATORIO', 'MATRICULA', 'SESSAO', 'DATA', 'RESULTADO', 'CODIGO'];
-  if (linhas.length !== 7) throw new Error('FORMATO_INVALIDO');
+  if (linhas[0] === 'VERSAO=2') campos.splice(3, 0, 'NOME');
+  if (linhas.length !== campos.length) throw new Error('FORMATO_INVALIDO');
   const dados = {};
   campos.forEach((campo, i) => {
     if (!linhas[i].startsWith(campo + '=')) throw new Error('FORMATO_INVALIDO');
     dados[campo] = linhas[i].slice(campo.length + 1);
   });
-  if (dados.VERSAO !== '1' || dados.LABORATORIO !== 'usuarios-grupos' || dados.RESULTADO !== 'CONCLUIDO' ||
+  if (dados.VERSAO === '2' && (!dados.NOME || Utilities.newBlob(dados.NOME).getBytes().length > 200 || /^ | $|[\x00-\x1f\x7f]/.test(dados.NOME))) throw new Error('FORMATO_INVALIDO');
+  if (!['1', '2'].includes(dados.VERSAO) || (!Object.prototype.hasOwnProperty.call(LABORATORIOS, dados.LABORATORIO) || !LABORATORIOS[dados.LABORATORIO].recebimento_ativo) || dados.RESULTADO !== 'CONCLUIDO' ||
       !/^[0-9]{1,32}$/.test(dados.MATRICULA) ||
       !/^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$/.test(dados.SESSAO) ||
       !/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$/.test(dados.DATA) ||
@@ -37,8 +47,8 @@ function validarTxt_(texto) {
   if (dados.DATA.startsWith('0000-') || isNaN(data.getTime()) || data.toISOString() !== dados.DATA.replace('Z', '.000Z')) {
     throw new Error('FORMATO_INVALIDO');
   }
-  if (dados.CODIGO !== 'SHA256:' + sha256_(linhas.slice(0, 6).join('\n') + '\n')) throw new Error('HASH_INVALIDO');
-  dados.nome = 'usuarios-grupos_' + dados.MATRICULA + '_' + dados.SESSAO + '.txt';
+  if (dados.CODIGO !== 'SHA256:' + sha256_(linhas.slice(0, -1).join('\n') + '\n')) throw new Error('HASH_INVALIDO');
+  dados.nome = dados.LABORATORIO + '_' + dados.MATRICULA + '_' + dados.SESSAO + '.txt';
   return dados;
 }
 
@@ -83,8 +93,8 @@ function pacote_(e) {
     arquivos.push({nome: nome, blob: Utilities.newBlob(registro, 'text/plain', nome), tamanho: registro.length, hash: hash, historico: true});
     confirmacao += '\nREGISTRO=' + nome + '\nREGISTRO_SHA256=' + hash;
   }
-  arquivos.push({nome: dados.nome, blob: Utilities.newBlob(texto, 'text/plain', dados.nome), tamanho: texto.length, hash: sha256_(texto), historico: false});
-  return {arquivos: arquivos, confirmacao: confirmacao};
+  arquivos.push({nome: dados.nome, blob: Utilities.newBlob(texto, 'text/plain', dados.nome), tamanho: Utilities.newBlob(texto).getBytes().length, hash: sha256_(texto), historico: false});
+  return {arquivos: arquivos, confirmacao: confirmacao, pasta: LABORATORIOS[dados.LABORATORIO].pasta_drive};
 }
 
 function doPost(e) {
@@ -94,7 +104,7 @@ function doPost(e) {
     const pacote = pacote_(e);
     lock = LockService.getScriptLock();
     if (!lock.tryLock(5000)) return resposta_('ERRO=OCUPADO');
-    const pasta = DriveApp.getFolderById(PASTA_ID);
+    const pasta = DriveApp.getFolderById(pacote.pasta);
     const pendentes = [];
     for (const item of pacote.arquivos) {
       const existentes = pasta.getFilesByName(item.nome);

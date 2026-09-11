@@ -1,6 +1,6 @@
 # Receber comprovantes no Google Drive
 
-Destino já configurado no `Code.gs`: [pasta de entregas](https://drive.google.com/drive/folders/1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm).
+Destino do laboratório `usuarios-grupos`, cadastrado no bloco gerado de `Code.gs`: [pasta de entregas](https://drive.google.com/drive/folders/1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm).
 
 ## Ativar na conta do professor
 
@@ -9,14 +9,14 @@ Destino já configurado no `Code.gs`: [pasta de entregas](https://drive.google.c
 3. Substitua o conteúdo de `Code.gs` pelo arquivo [Code.gs](Code.gs) desta pasta e salve.
 4. Selecione **Implantar → Nova implantação → Aplicativo da Web**.
 5. Em **Executar como**, escolha **Eu**. Em acesso, escolha **Qualquer pessoa**, pois o terminal do aluno não tem login Google. Autorize o acesso ao Drive na sua conta e conclua a implantação.
-6. Copie a URL de implantação terminada em `/exec` e coloque somente essa URL no arquivo `usuarios-grupos/assets/drive-upload-url` do repositório. Não use a URL da pasta nem uma URL `/dev`.
+6. Copie a URL de implantação terminada em `/exec` para o campo `url` de `comum/drive.json` e execute `python3 ferramentas/laboratorios.py sincronizar`. Não use a URL da pasta nem uma URL `/dev`.
 7. Publique a alteração na branch usada pelo Killercoda e inicie uma nova sessão do cenário.
 
-A URL de implantação fornecida pelo professor está configurada em `usuarios-grupos/assets/drive-upload-url`. Para desativar o envio no laboratório, deixe esse arquivo vazio. O link da pasta, sozinho, não habilita uploads.
+A URL de implantação fornecida pelo professor está em `comum/drive.json` e é copiada para os assets dos cenários ativos. Para desativar o envio de um laboratório, configure `recebimento_ativo: false` no seu `laboratorio.json`, sincronize e atualize a implantação Google. O link da pasta, sozinho, não habilita uploads.
 
 Se sua conta institucional não permitir acesso anônimo ao aplicativo, o administrador poderá restringir essa implantação. Nesse caso, mantenha o download do TXT; não há tentativa de contornar a política da instituição.
 
-A pasta não precisa ser pública e não deve conceder edição aos alunos. O aplicativo recebe autorização da sua conta para usar DriveApp (o consentimento do Google pode abranger o Drive, não apenas essa pasta); seu código só acessa o ID fixo configurado. Não altere o compartilhamento da pasta para habilitar este fluxo.
+A pasta não precisa ser pública e não deve conceder edição aos alunos. O aplicativo recebe autorização da sua conta para usar DriveApp (o consentimento do Google pode abranger o Drive, não apenas essa pasta); seu código só acessa os IDs de pasta cadastrados para cada laboratório. Não altere o compartilhamento da pasta para habilitar este fluxo.
 
 ## Funcionamento
 
@@ -24,7 +24,7 @@ Após validar todas as etapas e a existência do registro, `gerar-comprovante` g
 
 `enviar-comprovante` permite repetir o envio do mesmo par de arquivos sem gerar outra data ou hash. O comando também confere as etapas antes de enviar. Erros de conexão, limites ou autorização não removem os arquivos locais. O download e a entrega no Moodle continuam disponíveis.
 
-O receptor aceita apenas o TXT v1 de `usuarios-grupos`, com até 4 KiB e matrícula de 1 a 32 dígitos. Confere os campos, a data e o SHA-256. O nome é derivado dos dados, nunca de um caminho informado pelo cliente. Os arquivos salvos têm exatamente os bytes recebidos. O histórico tem limite de 1 MiB e é enviado como base64 no pacote JSON, preservando acentos e caracteres de controle.
+O receptor aceita apenas TXT v1 ou v2 de laboratórios cadastrados e com recebimento ativo, com até 4 KiB e matrícula de 1 a 32 dígitos. Confere os campos, a data e o SHA-256. O nome é derivado dos dados, nunca de um caminho informado pelo cliente. Os arquivos salvos têm exatamente os bytes recebidos. O histórico tem limite de 1 MiB e é enviado como base64 no pacote JSON, preservando acentos e caracteres de controle.
 
 O mesmo nome e conteúdo não geram cópias adicionais. Uma nova emissão com conteúdo diferente preserva a versão anterior: o Drive pode mostrar até cinco arquivos com o mesmo nome. A data de criação no Drive indica quando cada versão foi recebida; a DATA no TXT é informada pela VM. O receptor não sobrescreve, remove ou compartilha arquivos existentes e não oferece listagem nem download pelo endpoint.
 
@@ -46,15 +46,21 @@ O pacote tem limite de 1.500.000 bytes. O ContentService redireciona a resposta;
 
 ```text
 OK
-ARQUIVO=usuarios-grupos_<matricula>_<sessao>.txt
+ARQUIVO=<laboratorio>_<matricula>_<sessao>.txt
 CODIGO=SHA256:<hash do comprovante>
-REGISTRO=usuarios-grupos_<matricula>_<sessao>_<hash do comprovante>_historico.log
+REGISTRO=<laboratorio>_<matricula>_<sessao>_<hash do comprovante>_historico.log
 REGISTRO_SHA256=<hash dos bytes do histórico>
 ```
 
 Falhas devolvem `ERRO=<motivo>`; HTTP 200 sozinho não confirma recebimento. O cliente exige nomes e códigos correspondentes aos dois arquivos. Não imprime páginas de login ou mensagens arbitrárias devolvidas pelo servidor.
 
-O receptor conserva compatibilidade com POST `text/plain` da versão anterior (somente TXT, resposta de três linhas). O novo cliente exige o par; não aceita a confirmação antiga como entrega completa. A versão do TXT continua sendo **1**: versão 2 se refere somente ao pacote de transporte.
+O receptor conserva compatibilidade com POST `text/plain` da versão anterior (somente TXT, resposta de três linhas). O novo cliente exige o par; não aceita a confirmação antiga como entrega completa. O TXT atual usa versão **2**, com NOME. O receptor também aceita TXT v1 sem nome. A versão 2 do pacote de transporte é independente da versão do TXT.
+
+## Cadastrar outros laboratórios
+
+Use o comando de criação e o `laboratorio.json` de cada cenário, conforme o [guia do repositório](../../README.md). `python3 ferramentas/laboratorios.py sincronizar` gera o catálogo `professor/laboratorios.json` e o bloco `LABORATORIOS` do Code.gs. Não edite esse bloco manualmente: ele será substituído na próxima sincronização. O restante do receptor é compartilhado e permanece editável.
+
+Cada entrada define título, pasta de destino e se o recebimento está ativo. A pasta é escolhida pelo ID de laboratório presente no TXT e conferido no catálogo. Um cliente não escolhe uma pasta arbitrária. Laboratórios desconhecidos ou inativos são recusados. O limite diário é compartilhado por todos os laboratórios nesta implantação.
 
 ## Atualizar a implantação existente
 

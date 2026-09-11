@@ -13,6 +13,7 @@ install -m 755 "$BASE"/assets/identificar-aluno "$BASE"/assets/gerar-comprovante
 install -m 755 "$BASE"/assets/enviar-comprovante "$BASE"/assets/iniciar-registro /usr/local/bin/
 # Nunca carregar uma URL real nos testes.
 : > /usr/local/lib/laboratorio/drive-upload-url
+install -m 644 "$BASE"/assets/laboratorio.sh "$BASE"/assets/laboratorio.conf /usr/local/lib/laboratorio/
 CHECKS=/usr/local/lib/laboratorio
 TOTAL=0
 passa() {
@@ -36,7 +37,7 @@ falha gerar-comprovante
 [ ! -d /root/comprovantes ]
 falha bash -c "printf 'abc\n' | identificar-aluno"
 [ ! -e /root/.laboratorio-aluno ]
-passa bash -c "printf '20261234\n' | identificar-aluno"
+passa bash -c "printf '20261234\nJosé da Silva\n' | identificar-aluno"
 [ "$(stat -c %a /root/.laboratorio-aluno)" = 600 ]
 passa bash "$CHECKS/verify-step0.sh"
 # O teste de regras é não interativo; o teste PTY separado verifica a gravação real.
@@ -119,19 +120,20 @@ SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
 TXT="/root/comprovantes/usuarios-grupos_20261234_${SESSAO}.txt"
 [ -f "$TXT" ]
 [ "$(stat -c %a "$TXT")" = 644 ]
-[ "$(wc -l < "$TXT")" -eq 7 ]
-grep -qx 'VERSAO=1' "$TXT"
+[ "$(wc -l < "$TXT")" -eq 8 ]
+grep -qx 'VERSAO=2' "$TXT"
+grep -qx 'NOME=José da Silva' "$TXT"
 grep -qx 'LABORATORIO=usuarios-grupos' "$TXT"
 grep -qx 'MATRICULA=20261234' "$TXT"
 grep -qx "SESSAO=$SESSAO" "$TXT"
 grep -Eq '^DATA=[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$' "$TXT"
 grep -qx 'RESULTADO=CONCLUIDO' "$TXT"
 grep -Eq '^CODIGO=SHA256:[0-9a-f]{64}$' "$TXT"
-DIGEST=$(head -n 6 "$TXT" | sha256sum | cut -d ' ' -f1)
+DIGEST=$(head -n 7 "$TXT" | sha256sum | cut -d ' ' -f1)
 [ "$(tail -n 1 "$TXT")" = "CODIGO=SHA256:$DIGEST" ]
 # Edição dos dados muda o digest; o checksum não é uma assinatura.
 sed 's/MATRICULA=20261234/MATRICULA=99999999/' "$TXT" > /tmp/comprovante-editado.txt
-ALTERADO=$(head -n 6 /tmp/comprovante-editado.txt | sha256sum | cut -d ' ' -f1)
+ALTERADO=$(head -n 7 /tmp/comprovante-editado.txt | sha256sum | cut -d ' ' -f1)
 [ "$ALTERADO" != "$DIGEST" ]
 cp "$TXT" /tmp/comprovante-anterior.txt
 # O registro é dado, não um script a ser executado.
@@ -189,7 +191,7 @@ NOVO_TXT="/root/comprovantes/usuarios-grupos_0020261234_${SESSAO}.txt"
 grep -qx 'MATRICULA=0020261234' "$NOVO_TXT"
 # Nova identificação independente gera outro UUID completo.
 rm /root/.laboratorio-aluno
-passa bash -c "printf '20261234\n' | identificar-aluno"
+passa bash -c "printf '20261234\nJosé da Silva\n' | identificar-aluno"
 NOVA_SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
 [ "$NOVA_SESSAO" != "$SESSAO" ]
 passa bash "$CHECKS/verify-step0.sh"
