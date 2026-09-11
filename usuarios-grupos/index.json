@@ -26,6 +26,11 @@
         "text": "step4.md",
         "verify": "verify-step4.sh"
       }
+      {
+        "title": "Permissões de acesso",
+        "text": "step5.md",
+        "verify": "verify-step5.sh"
+      }
     ],
       "finish": {
       "text": "finish.md"
