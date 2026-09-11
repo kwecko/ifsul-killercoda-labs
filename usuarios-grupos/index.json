@@ -21,8 +21,13 @@
         "text": "step3.md",
         "verify": "verify-step3.sh"
       }
+      {
+        "title": "Estrutura de diretórios compartilhados",
+        "text": "step4.md",
+        "verify": "verify-step4.sh"
+      }
     ],
-    "finish": {
+      "finish": {
       "text": "finish.md"
     }
   },
