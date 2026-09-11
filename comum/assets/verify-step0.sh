@@ -24,7 +24,7 @@ if [ -z "$NOME" ] || [ "$(printf '%s' "$NOME" | wc -c)" -gt 200 ] ||
     exit 1
 fi
 
-[[ "$MATRICULA" =~ ^[0-9]+$ ]] || exit 1
+[[ "$MATRICULA" =~ ^[A-Za-z0-9][A-Za-z0-9._]{0,31}$ ]] || exit 1
 [[ "$SESSAO" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]] || exit 1
 [[ "$INICIO" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}$ ]] || exit 1
 date -d "$INICIO" >/dev/null 2>&1 || exit 1

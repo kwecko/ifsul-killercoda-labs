@@ -50,8 +50,8 @@ def validar(conteudo: bytes, laboratorios=None) -> dict:
         nome = dados['NOME']
         if not nome or len(nome.encode('utf-8')) > 200 or nome != nome.strip(' ') or any(ord(c) < 32 or ord(c) == 127 for c in nome):
             raise ComprovanteInvalido('nome inválido')
-    if not re.fullmatch(r'[0-9]+', dados['MATRICULA']):
-        raise ComprovanteInvalido('matrícula deve conter somente dígitos ASCII')
+    if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._]{0,31}', dados['MATRICULA']):
+        raise ComprovanteInvalido('matrícula deve conter de 1 a 32 caracteres (letras ASCII, números, ponto ou sublinhado), começando com letra ou número, sem espaços')
     if not re.fullmatch(r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}', dados['SESSAO']):
         raise ComprovanteInvalido('sessão deve ser um UUID completo')
     if not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z', dados['DATA']):
@@ -73,11 +73,11 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('arquivos', nargs='+', type=Path, help='um ou mais arquivos TXT baixados do Moodle')
     parser.add_argument('--laboratorio', help='identificador do laboratório esperado')
-    parser.add_argument('--matricula', help='matrícula esperada (comparação textual, incluindo zeros à esquerda)')
+    parser.add_argument('--matricula', help='matrícula esperada (comparação textual, preservando maiúsculas, minúsculas e zeros à esquerda)')
     parser.add_argument('--conferir-nome', action='store_true', help='reprovar também se o nome do arquivo divergir dos campos')
     args = parser.parse_args(argv)
-    if args.matricula is not None and not re.fullmatch(r'[0-9]+', args.matricula):
-        parser.error('--matricula deve conter somente dígitos ASCII')
+    if args.matricula is not None and not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._]{0,31}', args.matricula):
+        parser.error('--matricula deve conter de 1 a 32 caracteres (letras ASCII, números, ponto ou sublinhado), começando com letra ou número, sem espaços')
     print('Validação de formato e checksum; não comprova autenticidade ou autoria.')
     erros = 0
     for arquivo in args.arquivos:

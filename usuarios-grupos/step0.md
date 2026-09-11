@@ -6,7 +6,7 @@ Execute o comando abaixo:
 
 `identificar-aluno`{{exec}}
 
-Informe sua matrícula quando solicitado, usando somente números. Em seguida, informe seu nome completo, com acentos e espaços normalmente. Confira o nome e a matrícula exibidos no terminal; os zeros à esquerda são preservados.
+Informe sua matrícula quando solicitado, usando de 1 a 32 caracteres: letras (A-Z/a-z), números, ponto e sublinhado, começando com letra ou número e sem espaços. Exemplo: `20261CM.INF_I0027`. Em seguida, informe seu nome completo, com acentos e espaços normalmente. Confira o nome e a matrícula exibidos no terminal; maiúsculas, minúsculas e zeros à esquerda são preservados; digite exatamente como consta no seu registro acadêmico.
 
 A identificação será utilizada para gerar o comprovante individual de conclusão do laboratório. Uma sessão aleatória é criada e permanece a mesma durante esta execução. Executar o comando novamente conserva a identificação e retoma a gravação, se ela tiver sido encerrada.
 

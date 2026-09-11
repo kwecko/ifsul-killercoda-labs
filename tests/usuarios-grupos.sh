@@ -38,7 +38,7 @@ falha gerar-comprovante
 [ ! -d /root/comprovantes ]
 falha bash -c "printf 'abc\n' | identificar-aluno"
 [ ! -e /root/.laboratorio-aluno ]
-passa bash -c "printf '20261234\nJosé da Silva\n' | identificar-aluno"
+passa bash -c "printf '20261CM.INF_I0027\nJosé da Silva\n' | identificar-aluno"
 [ "$(stat -c %a /root/.laboratorio-aluno)" = 600 ]
 passa bash "$CHECKS/verify-step0.sh"
 # O teste de regras é não interativo; o teste PTY separado verifica a gravação real.
@@ -118,14 +118,14 @@ runuser -u julia -- sh -c 'cd /empresa/desenvolvimento; mkdir projetos; printf "
 passa bash "$CHECKS/verify-step6.sh"
 passa gerar-comprovante
 SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
-TXT="/root/comprovantes/usuarios-grupos_20261234_${SESSAO}.txt"
+TXT="/root/comprovantes/usuarios-grupos_20261CM.INF_I0027_${SESSAO}.txt"
 [ -f "$TXT" ]
 [ "$(stat -c %a "$TXT")" = 644 ]
 [ "$(wc -l < "$TXT")" -eq 8 ]
 grep -qx 'VERSAO=2' "$TXT"
 grep -qx 'NOME=José da Silva' "$TXT"
 grep -qx 'LABORATORIO=usuarios-grupos' "$TXT"
-grep -qx 'MATRICULA=20261234' "$TXT"
+grep -qx 'MATRICULA=20261CM.INF_I0027' "$TXT"
 grep -qx "SESSAO=$SESSAO" "$TXT"
 grep -Eq '^DATA=[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$' "$TXT"
 grep -qx 'RESULTADO=CONCLUIDO' "$TXT"
@@ -133,7 +133,7 @@ grep -Eq '^CODIGO=SHA256:[0-9a-f]{64}$' "$TXT"
 DIGEST=$(head -n 7 "$TXT" | sha256sum | cut -d ' ' -f1)
 [ "$(tail -n 1 "$TXT")" = "CODIGO=SHA256:$DIGEST" ]
 # Edição dos dados muda o digest; o checksum não é uma assinatura.
-sed 's/MATRICULA=20261234/MATRICULA=99999999/' "$TXT" > /tmp/comprovante-editado.txt
+sed 's/MATRICULA=20261CM.INF_I0027/MATRICULA=99999999/' "$TXT" > /tmp/comprovante-editado.txt
 ALTERADO=$(head -n 7 /tmp/comprovante-editado.txt | sha256sum | cut -d ' ' -f1)
 [ "$ALTERADO" != "$DIGEST" ]
 cp "$TXT" /tmp/comprovante-anterior.txt
@@ -186,20 +186,20 @@ falha gerar-comprovante
 [ -z "$(find /root/comprovantes -name '.comprovante.*' -print)" ]
 rmdir "$TXT"
 # Matrículas são texto e conservam os zeros iniciais no nome e nos dados.
-sed -i 's/^MATRICULA=.*/MATRICULA=0020261234/' /root/.laboratorio-aluno
+sed -i 's/^MATRICULA=.*/MATRICULA=0020261CM.INF_I0027/' /root/.laboratorio-aluno
 passa gerar-comprovante
-NOVO_TXT="/root/comprovantes/usuarios-grupos_0020261234_${SESSAO}.txt"
-grep -qx 'MATRICULA=0020261234' "$NOVO_TXT"
+NOVO_TXT="/root/comprovantes/usuarios-grupos_0020261CM.INF_I0027_${SESSAO}.txt"
+grep -qx 'MATRICULA=0020261CM.INF_I0027' "$NOVO_TXT"
 # Nova identificação independente gera outro UUID completo.
 rm /root/.laboratorio-aluno
-passa bash -c "printf '20261234\nJosé da Silva\n' | identificar-aluno"
+passa bash -c "printf '20261CM.INF_I0027\nJosé da Silva\n' | identificar-aluno"
 NOVA_SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
 [ "$NOVA_SESSAO" != "$SESSAO" ]
 passa bash "$CHECKS/verify-step0.sh"
 printf '\033[32mregistro simulado da nova sessão\033[0m\r\n' > "/root/registros/$NOVA_SESSAO.log"
 # Exercita o cliente de upload com rede simulada, sem dados enviados ao Google.
 passa gerar-comprovante
-TXT="/root/comprovantes/usuarios-grupos_20261234_${NOVA_SESSAO}.txt"
+TXT="/root/comprovantes/usuarios-grupos_20261CM.INF_I0027_${NOVA_SESSAO}.txt"
 falha enviar-comprovante
 mkdir -p /tmp/lab-mock-bin
 cat > /tmp/lab-mock-bin/curl <<'MOCK'

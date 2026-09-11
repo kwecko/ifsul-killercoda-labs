@@ -4,7 +4,7 @@ Formato anterior, mantido para leitura dos comprovantes já emitidos. A emissão
 
 ## Emissão no Killercoda
 
-`identificar-aluno` mantém o registro existente em `/root/.laboratorio-aluno`: matrícula numérica, UUID completo gerado por `/proc/sys/kernel/random/uuid` e início da atividade. A matrícula é texto, preservando zeros à esquerda. Não se abrevia o UUID para oito caracteres; usa-se o identificador completo para reduzir colisões. O mesmo registro é reutilizado na sessão.
+`identificar-aluno` mantém o registro existente em `/root/.laboratorio-aluno`: matrícula com letras, números, ponto e sublinhado, UUID completo gerado por `/proc/sys/kernel/random/uuid` e início da atividade. A matrícula é texto, preservando zeros à esquerda. Não se abrevia o UUID para oito caracteres; usa-se o identificador completo para reduzir colisões. O mesmo registro é reutilizado na sessão.
 
 `gerar-comprovante` executa os sete verificadores existentes, de 0 a 6, e só publica o TXT se todos retornarem sucesso. Os critérios das etapas e o `index.json` permanecem inalterados. A validação confere o estado atual, sem exigir um histórico dos cliques em CHECK.
 
@@ -24,7 +24,7 @@ UTF-8 sem BOM, terminadores LF (`0x0a`), incluindo um LF ao final da última lin
 |---|---|---|
 | 1 | VERSAO | Literal `1` |
 | 2 | LABORATORIO | Literal `usuarios-grupos` |
-| 3 | MATRICULA | Um ou mais dígitos ASCII; preservar zeros à esquerda |
+| 3 | MATRICULA | De 1 a 32 caracteres: letras ASCII, números, ponto ou sublinhado; começar com letra ou número; preservar caixa e zeros à esquerda |
 | 4 | SESSAO | UUID completo, 36 caracteres no padrão `8-4-4-4-12` hexadecimal |
 | 5 | DATA | Data/hora de emissão em UTC, `AAAA-MM-DDTHH:MM:SSZ`, sem frações |
 | 6 | RESULTADO | Literal `CONCLUIDO` |

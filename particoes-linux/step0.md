@@ -8,7 +8,7 @@ Continue somente quando aparecer **Dois discos de 1 GiB prontos**. Repetir esse 
 
 `identificar-aluno`{{exec}}
 
-Informe matrícula (somente números) e nome completo. A gravação do terminal começa automaticamente. Os comandos e as saídas visíveis compõem o histórico da entrega.
+Informe matrícula (de 1 a 32 caracteres: letras A-Z/a-z, números, ponto e sublinhado; comece com letra ou número, sem espaços) e nome completo. Exemplo: `20261CM.INF_I0027`. Digite a matrícula exatamente como consta no registro acadêmico; maiúsculas, minúsculas e zeros à esquerda são preservados. A gravação do terminal começa automaticamente. Os comandos e as saídas visíveis compõem o histórico da entrega.
 
 Carregue as variáveis com os nomes dos dois discos:
 

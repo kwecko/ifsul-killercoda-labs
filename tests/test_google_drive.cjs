@@ -93,6 +93,17 @@ test('grava par de arquivos preservando bytes do terminal', () => {
   assert.equal(s.files.length, 2); assert.deepEqual(s.files[0].bytes, registro); assert.equal(s.files[1].text, receipt(payload));
   assert.equal(s.post(pacote(), 'application/json'), reply); assert.equal(s.files.length, 2);
 });
+test('aceita matrícula com ponto e sublinhado no TXT e no LOG', () => {
+  const s = setup();
+  const txt = receipt(payload.replace('202612345', '20261CM.INF_I0027'));
+  assert.match(s.post(pacote(txt), 'application/json'), /^OK\n/);
+  assert.equal(s.files.length, 2);
+  for (const file of s.files) assert.ok(file.name.startsWith('usuarios-grupos_20261CM.INF_I0027_'));
+  assert.equal(s.files[1].text, txt);
+  for (const bad of ['IF 123', 'IF-123', '../123', 'IF/123', '.', '_', 'Á123', 'A'.repeat(33)]) {
+    assert.match(setup().post(pacote(receipt(payload.replace('202612345', bad))), 'application/json'), /^ERRO=/);
+  }
+});
 test('entrega parcial não confirma e reenvio completa sem duplicar', () => {
   const s = setup(); s.state.failAfter = 1;
   assert.equal(s.post(pacote(), 'application/json'), 'ERRO=FALHA_INTERNA'); assert.equal(s.files.length, 1);

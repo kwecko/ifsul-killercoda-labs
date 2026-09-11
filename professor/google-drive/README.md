@@ -24,7 +24,7 @@ Após validar todas as etapas e a existência do registro, `gerar-comprovante` g
 
 `enviar-comprovante` permite repetir o envio do mesmo par de arquivos sem gerar outra data ou hash. O comando também confere as etapas antes de enviar. Erros de conexão, limites ou autorização não removem os arquivos locais. O download e a entrega no Moodle continuam disponíveis.
 
-O receptor aceita apenas TXT v1 ou v2 de laboratórios cadastrados e com recebimento ativo, com até 4 KiB e matrícula de 1 a 32 dígitos. Confere os campos, a data e o SHA-256. O nome é derivado dos dados, nunca de um caminho informado pelo cliente. Os arquivos salvos têm exatamente os bytes recebidos. O histórico tem limite de 1 MiB e é enviado como base64 no pacote JSON, preservando os bytes do texto legível produzido na VM.
+O receptor aceita apenas TXT v1 ou v2 de laboratórios cadastrados e com recebimento ativo, com até 4 KiB e matrícula de 1 a 32 caracteres (letras ASCII, números, ponto e sublinhado), começando com letra ou número, preservando caixa e zeros iniciais. Confere os campos, a data e o SHA-256. O nome é derivado dos dados, nunca de um caminho informado pelo cliente. Os arquivos salvos têm exatamente os bytes recebidos. O histórico tem limite de 1 MiB e é enviado como base64 no pacote JSON, preservando os bytes do texto legível produzido na VM.
 
 O mesmo nome e conteúdo não geram cópias adicionais. Uma nova emissão com conteúdo diferente preserva a versão anterior: o Drive pode mostrar até cinco arquivos com o mesmo nome. A data de criação no Drive indica quando cada versão foi recebida; a DATA no TXT é informada pela VM. O receptor não sobrescreve, remove ou compartilha arquivos existentes e não oferece listagem nem download pelo endpoint.
 

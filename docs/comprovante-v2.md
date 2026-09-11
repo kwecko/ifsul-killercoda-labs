@@ -26,3 +26,5 @@ O validador local e o receptor atualizado aceitam v1 (sem nome) e v2 (com nome),
 O transporte JSON com histórico permanece na versão 2 e pode conter comprovantes v1 ou v2. Essas versões são independentes. Atualize o Code.gs e publique uma nova versão da implantação antes de usar a emissão com nome. A URL do Apps Script pode permanecer a mesma.
 
 O nome é autodeclarado, assim como a matrícula. O hash não autentica a identidade; as limitações de root e a associação do histórico permanecem as descritas no [registro do terminal](registro-terminal.md).
+
+MATRICULA aceita de 1 a 32 caracteres: letras ASCII (`A-Z`, `a-z`), números (`0-9`), ponto (`.`) e sublinhado (`_`), começando com letra ou número. Exemplo: `20261CM.INF_I0027`. Não são aceitos espaços, acentos, barras ou outros sinais nesse campo. A caixa e os zeros iniciais são preservados no TXT, no nome dos arquivos e na comparação do validador. Matrículas somente numéricas continuam válidas; a ampliação dos caracteres aceitos não muda a versão, a serialização nem o cálculo do hash. O Apps Script precisa ser reimplantado com a mesma regra.

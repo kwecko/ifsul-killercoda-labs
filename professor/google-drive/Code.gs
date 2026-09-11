@@ -44,7 +44,7 @@ function validarTxt_(texto) {
   });
   if (dados.VERSAO === '2' && (!dados.NOME || Utilities.newBlob(dados.NOME).getBytes().length > 200 || /^ | $|[\x00-\x1f\x7f]/.test(dados.NOME))) throw new Error('FORMATO_INVALIDO');
   if (!['1', '2'].includes(dados.VERSAO) || (!Object.prototype.hasOwnProperty.call(LABORATORIOS, dados.LABORATORIO) || !LABORATORIOS[dados.LABORATORIO].recebimento_ativo) || dados.RESULTADO !== 'CONCLUIDO' ||
-      !/^[0-9]{1,32}$/.test(dados.MATRICULA) ||
+      !/^[A-Za-z0-9][A-Za-z0-9._]{0,31}$/.test(dados.MATRICULA) ||
       !/^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$/.test(dados.SESSAO) ||
       !/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$/.test(dados.DATA) ||
       !/^SHA256:[0-9a-f]{64}$/.test(dados.CODIGO)) throw new Error('FORMATO_INVALIDO');

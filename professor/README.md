@@ -13,7 +13,7 @@ Coloque caminhos com espaços entre aspas. Informe arquivos, não pastas ou ZIPs
 
 O programa lê `laboratorios.json` ao lado do script, gerado pelo comando de sincronização. Distribua os dois arquivos juntos. Ele aceita apenas laboratórios cadastrados; `--laboratorio ID` também exige a atividade esperada. Laboratórios com recebimento desativado continuam reconhecidos localmente para permitir avaliar entregas anteriores.
 
-O programa verifica a serialização exata, os campos e sua ordem, versão, laboratório, matrícula, UUID, data válida em UTC, resultado e SHA-256. Ele apenas lê os arquivos, não os altera e não executa seu conteúdo. `--matricula` compara com o número informado pelo professor, preservando zeros à esquerda; se houver vários arquivos, compara todos com essa mesma matrícula.
+O programa verifica a serialização exata, os campos e sua ordem, versão, laboratório, matrícula, UUID, data válida em UTC, resultado e SHA-256. Ele apenas lê os arquivos, não os altera e não executa seu conteúdo. `--matricula` compara com o identificador informado (letras, números, ponto e sublinhado) pelo professor, preservando maiúsculas, minúsculas e zeros à esquerda; se houver vários arquivos, compara todos com essa mesma matrícula.
 
 Por padrão, renomear o arquivo gera apenas um aviso, pois o Moodle ou o navegador podem alterar o nome durante o download. Use `--conferir-nome` para exigir o nome definido no contrato.
 

@@ -54,8 +54,8 @@ echo
 
 read -r -p "Informe sua matrícula: " MATRICULA
 
-if ! [[ "$MATRICULA" =~ ^[0-9]+$ ]]; then
-    echo "Matrícula inválida."
+if ! [[ "$MATRICULA" =~ ^[A-Za-z0-9][A-Za-z0-9._]{0,31}$ ]]; then
+    echo "Matrícula inválida: use de 1 a 32 caracteres: letras A-Z/a-z, números, ponto ou sublinhado; comece com letra ou número e não use espaços."
     exit 1
 fi
 

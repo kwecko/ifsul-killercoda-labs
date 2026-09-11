@@ -54,6 +54,19 @@ class ValidacaoTests(unittest.TestCase):
     def test_zeros_iniciais(self):
         self.assertEqual(mod.validar(com_hash(PAYLOAD.replace(b'202612345', b'00202612345')))['MATRICULA'], '00202612345')
 
+    def test_matricula_alfanumerica(self):
+        for matricula in ('20261CM.INF_I0027', '00If2026A', 'A', '0', 'A' * 32):
+            data = com_hash(PAYLOAD.replace(b'202612345', matricula.encode()))
+            self.assertEqual(mod.validar(data)['MATRICULA'], matricula)
+        for matricula in ('', 'A' * 33, 'IF 123', '../123', '.', '_', 'IF/123', 'IF-123', 'Á123'):
+            with self.subTest(matricula=matricula), self.assertRaises(mod.ComprovanteInvalido):
+                mod.validar(com_hash(PAYLOAD.replace(b'202612345', matricula.encode())))
+        with tempfile.TemporaryDirectory() as pasta:
+            txt = Path(pasta) / 'teste.txt'
+            txt.write_bytes(com_hash(PAYLOAD.replace(b'202612345', b'20261CM.INF_I0027')))
+            self.assertEqual(self.executar(['--matricula', '20261CM.INF_I0027', str(txt)])[0], 0)
+            self.assertEqual(self.executar(['--matricula', '20261cm.INF_I0027', str(txt)])[0], 1)
+
     def test_uuid_maiusculo(self):
         mod.validar(com_hash(PAYLOAD.replace(b'550e8400-e29b-41d4-a716-446655440000', b'550E8400-E29B-41D4-A716-446655440000')))
 
@@ -66,7 +79,7 @@ class ValidacaoTests(unittest.TestCase):
 
     def test_campos_invalidos_mesmo_com_hash_correto(self):
         casos = [(b'VERSAO=1', b'VERSAO=2'), (b'LABORATORIO=usuarios-grupos', b'LABORATORIO=outro'),
-                 (b'RESULTADO=CONCLUIDO', b'RESULTADO=PENDENTE'), (b'202612345', b'abc'),
+                 (b'RESULTADO=CONCLUIDO', b'RESULTADO=PENDENTE'), (b'202612345', b'IF-123'),
                  (b'202612345', '１２３'.encode()), (b'550e8400-e29b-41d4-a716-446655440000', b'UG-A72F91C3'),
                  (b'2026-09-11T18:30:00Z', b'2026-02-30T18:30:00Z'),
                  (b'2026-09-11T18:30:00Z', b'2026-09-11T25:30:00Z'),
@@ -115,7 +128,7 @@ class ValidacaoTests(unittest.TestCase):
 
     def test_cli_erro_de_argumentos(self):
         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as erro:
-            mod.main(['--matricula', 'abc', 'arquivo.txt'])
+            mod.main(['--matricula', 'IF 123', 'arquivo.txt'])
         self.assertEqual(erro.exception.code, 2)
 
     def test_nao_incluido_no_cenario(self):

@@ -27,7 +27,7 @@ ANTES=$MBR
 passa preparar-discos
 source /root/discos.env
 [ "$ANTES" = "$MBR" ]
-printf '202612345\nJosé da Silva\n' | identificar-aluno
+printf '20261CM.INF_I0027\nJosé da Silva\n' | identificar-aluno
 SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
 mkdir -p /root/registros
 printf 'Registro simulado da atividade de 60 minutos\n' > "/root/registros/$SESSAO.log"
@@ -102,7 +102,7 @@ passa verify 8
 # Etapas transitórias não precisam ser recriadas depois da exclusão.
 for n in $(seq 1 7); do passa verify "$n"; done
 passa gerar-comprovante
-TXT="/root/comprovantes/particoes-linux_202612345_${SESSAO}.txt"
+TXT="/root/comprovantes/particoes-linux_20261CM.INF_I0027_${SESSAO}.txt"
 [ -s "$TXT" ]
 grep -q '^LABORATORIO=particoes-linux$' "$TXT"
 # Mesmo após concluir, não emite se o estado final foi quebrado.
