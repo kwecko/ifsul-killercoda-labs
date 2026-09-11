@@ -31,6 +31,11 @@
         "text": "step5.md",
         "verify": "verify-step5.sh"
       }
+      {
+        "title": "Teste de acesso e manipulação de arquivos",
+        "text": "step6.md",
+        "verify": "verify-step6.sh"
+      }
     ],
       "finish": {
       "text": "finish.md"
