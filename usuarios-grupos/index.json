@@ -51,16 +51,16 @@
   },
   "assets": {
     "host01": [
-     {
-      "file": "identificar.sh",
-      "target": "/usr/local/bin/",
-      "chmod": "+x"
-     },
-     {
-      "file": "gerar-comprovante.sh",
-      "target": "/usr/local/bin/",
-      "chmod": "+x"
-     }
-   ]
-  }
+      {
+        "file": "identificar-aluno",
+        "target": "/usr/local/bin/",
+        "chmod": "+x"
+      },
+      {
+        "file": "gerar-comprovante",
+        "target": "/usr/local/bin/",
+        "chmod": "+x"
+      }
+  ]
+}
 }
