@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 if [ "$EUID" -ne 0 ]; then
     echo "Retorne à sessão de root com exit antes de gerar o comprovante."
@@ -33,21 +34,30 @@ fi
 
 MATRICULA=$(sed -n 's/^MATRICULA=//p' "$ARQUIVO")
 SESSAO=$(sed -n 's/^SESSAO=//p' "$ARQUIVO")
-INICIO=$(sed -n 's/^INICIO="\(.*\)"$/\1/p' "$ARQUIVO")
+# Formato v1: UTF-8 sem BOM, linhas LF, ordem fixa e LF final.
+# SHA-256 detecta alterações sem recálculo; não autentica a origem da VM.
+DATA_FINAL=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+DIRETORIO="/root/comprovantes"
+DESTINO="$DIRETORIO/usuarios-grupos_${MATRICULA}_${SESSAO}.txt"
+mkdir -p "$DIRETORIO"
+TEMPORARIO=$(mktemp "$DIRETORIO/.comprovante.XXXXXXXXXX")
+trap 'rm -f -- "$TEMPORARIO"' EXIT
 
-DATA_FINAL=$(date "+%Y-%m-%d %H:%M:%S")
+printf '%s\n' \
+    'VERSAO=1' \
+    'LABORATORIO=usuarios-grupos' \
+    "MATRICULA=$MATRICULA" \
+    "SESSAO=$SESSAO" \
+    "DATA=$DATA_FINAL" \
+    'RESULTADO=CONCLUIDO' > "$TEMPORARIO"
+CODIGO=$(sha256sum "$TEMPORARIO")
+CODIGO=${CODIGO%% *}
+printf 'CODIGO=SHA256:%s\n' "$CODIGO" >> "$TEMPORARIO"
+chmod 644 "$TEMPORARIO"
+# Publica somente o TXT completo. Nova geração substitui o da mesma sessão.
+mv -fT -- "$TEMPORARIO" "$DESTINO"
 
-echo
-echo "================================================"
-echo "       COMPROVANTE DE CONCLUSÃO DO LABORATÓRIO"
-echo "================================================"
-echo
-echo "Laboratório : Gerenciamento de Usuários e Grupos"
-echo "Matrícula   : $MATRICULA"
-echo "Sessão      : $SESSAO"
-echo "Início      : $INICIO"
-echo "Conclusão   : $DATA_FINAL"
-echo
-echo "Status      : ATIVIDADE CONCLUÍDA"
-echo
-echo "================================================"
+printf '\nComprovante gerado: %s\n\n' "$DESTINO"
+cat "$DESTINO"
+printf '\nBaixe o arquivo pelo Editor: abra /root/comprovantes, clique com o botão direito no TXT e escolha Download.\n'
+printf 'Envie o arquivo TXT baixado na atividade do Moodle, antes de encerrar o ambiente.\n'

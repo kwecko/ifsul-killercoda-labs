@@ -30,6 +30,7 @@ falha() {
 
 for etapa in {0..6}; do falha bash "$CHECKS/verify-step$etapa.sh"; done
 falha gerar-comprovante
+[ ! -d /root/comprovantes ]
 falha bash -c "printf 'abc\n' | identificar-aluno"
 [ ! -e /root/.laboratorio-aluno ]
 passa bash -c "printf '20261234\n' | identificar-aluno"
@@ -95,8 +96,25 @@ chmod 00770 /empresa/administracao
 runuser -u julia -- sh -c 'cd /empresa/desenvolvimento; mkdir projetos; printf "Projeto em desenvolvimento\n" > projetos/projeto.txt'
 passa bash "$CHECKS/verify-step6.sh"
 passa gerar-comprovante
-grep -q 'Matrícula   : 20261234' /tmp/lab-test-output
-grep -q 'Status      : ATIVIDADE CONCLUÍDA' /tmp/lab-test-output
+SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
+TXT="/root/comprovantes/usuarios-grupos_20261234_${SESSAO}.txt"
+[ -f "$TXT" ]
+[ "$(stat -c %a "$TXT")" = 644 ]
+[ "$(wc -l < "$TXT")" -eq 7 ]
+grep -qx 'VERSAO=1' "$TXT"
+grep -qx 'LABORATORIO=usuarios-grupos' "$TXT"
+grep -qx 'MATRICULA=20261234' "$TXT"
+grep -qx "SESSAO=$SESSAO" "$TXT"
+grep -Eq '^DATA=[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$' "$TXT"
+grep -qx 'RESULTADO=CONCLUIDO' "$TXT"
+grep -Eq '^CODIGO=SHA256:[0-9a-f]{64}$' "$TXT"
+DIGEST=$(head -n 6 "$TXT" | sha256sum | cut -d ' ' -f1)
+[ "$(tail -n 1 "$TXT")" = "CODIGO=SHA256:$DIGEST" ]
+# Edição dos dados muda o digest; o checksum não é uma assinatura.
+sed 's/MATRICULA=20261234/MATRICULA=99999999/' "$TXT" > /tmp/comprovante-editado.txt
+ALTERADO=$(head -n 6 /tmp/comprovante-editado.txt | sha256sum | cut -d ' ' -f1)
+[ "$ALTERADO" != "$DIGEST" ]
+cp "$TXT" /tmp/comprovante-anterior.txt
 # O registro é dado, não um script a ser executado.
 printf '\ntouch /tmp/nao-deve-existir\n' >> /root/.laboratorio-aluno
 passa gerar-comprovante
@@ -109,7 +127,9 @@ cp /tmp/identificacao-original /root/.laboratorio-aluno
 
 usermod -aG administracao julia
 falha bash "$CHECKS/verify-step6.sh"
+cp "$TXT" /tmp/comprovante-anterior.txt
 falha gerar-comprovante
+cmp "$TXT" /tmp/comprovante-anterior.txt
 usermod -G '' julia
 chmod 700 /empresa
 falha bash "$CHECKS/verify-step6.sh"
@@ -129,4 +149,29 @@ mv /tmp/verify-step1.sh "$CHECKS/verify-step1.sh"
 falha runuser -u julia -- gerar-comprovante
 falha runuser -u julia -- identificar-aluno
 passa gerar-comprovante
+# Reemissão válida conserva o nome e substitui o conteúdo anterior.
+printf 'conteudo anterior\n' > "$TXT"
+passa gerar-comprovante
+grep -qx 'RESULTADO=CONCLUIDO' "$TXT"
+[ "$(find /root/comprovantes -name '*.txt' | wc -l)" -eq 1 ]
+[ -z "$(find /root/comprovantes -name '.comprovante.*' -print)" ]
+# Erro na publicação não pode ser anunciado como sucesso.
+cp "$TXT" /tmp/comprovante-anterior.txt
+rm "$TXT"
+mkdir "$TXT"
+falha gerar-comprovante
+[ -d "$TXT" ]
+[ -z "$(find /root/comprovantes -name '.comprovante.*' -print)" ]
+rmdir "$TXT"
+# Matrículas são texto e conservam os zeros iniciais no nome e nos dados.
+sed -i 's/^MATRICULA=.*/MATRICULA=0020261234/' /root/.laboratorio-aluno
+passa gerar-comprovante
+NOVO_TXT="/root/comprovantes/usuarios-grupos_0020261234_${SESSAO}.txt"
+grep -qx 'MATRICULA=0020261234' "$NOVO_TXT"
+# Nova identificação independente gera outro UUID completo.
+rm /root/.laboratorio-aluno
+passa bash -c "printf '20261234\n' | identificar-aluno"
+NOVA_SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
+[ "$NOVA_SESSAO" != "$SESSAO" ]
+passa bash "$CHECKS/verify-step0.sh"
 printf 'OK: %s verificações positivas e negativas no Ubuntu.\n' "$TOTAL"

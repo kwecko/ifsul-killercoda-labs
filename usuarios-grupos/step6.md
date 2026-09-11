@@ -22,3 +22,5 @@ O diretório `projetos` e o arquivo devem pertencer a `julia`. O acesso a `/empr
 Ao finalizar os testes, retorne à sessão do usuário `root` para realizar a verificação da atividade.
 
 Pressione **CHECK** para verificar esta etapa.
+
+Depois que esta etapa passar, avance para a página final para gerar e baixar o comprovante `.txt` que será entregue no Moodle.

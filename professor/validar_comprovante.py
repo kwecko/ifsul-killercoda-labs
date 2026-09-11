@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Valida localmente o formato v1 e checksum; não autentica a origem."""
+
+import argparse
+from datetime import datetime
+import hashlib
+import hmac
+from pathlib import Path
+import re
+import sys
+
+CAMPOS = ('VERSAO', 'LABORATORIO', 'MATRICULA', 'SESSAO', 'DATA', 'RESULTADO', 'CODIGO')
+
+
+class ComprovanteInvalido(ValueError):
+    """O comprovante não atende ao contrato v1."""
+
+
+def validar(conteudo: bytes) -> dict:
+    """Confere os bytes originais, sem normalização ou execução de conteúdo."""
+    try:
+        texto = conteudo.decode('utf-8')
+    except UnicodeDecodeError as exc:
+        raise ComprovanteInvalido('arquivo não está em UTF-8') from exc
+    if texto.startswith('\ufeff'):
+        raise ComprovanteInvalido('BOM não é permitido')
+    if '\r' in texto or not texto.endswith('\n'):
+        raise ComprovanteInvalido('use linhas LF e uma quebra de linha final')
+    linhas = texto[:-1].split('\n')
+    if len(linhas) != len(CAMPOS):
+        raise ComprovanteInvalido('o formato exige exatamente sete linhas')
+    dados = {}
+    for campo, linha in zip(CAMPOS, linhas):
+        chave, separador, valor = linha.partition('=')
+        if not separador or chave != campo:
+            raise ComprovanteInvalido(f'campo ausente, duplicado ou fora de ordem: esperado {campo}')
+        dados[campo] = valor
+    for campo, valor in (('VERSAO', '1'), ('LABORATORIO', 'usuarios-grupos'), ('RESULTADO', 'CONCLUIDO')):
+        if dados[campo] != valor:
+            raise ComprovanteInvalido(f'{campo} deve ser {valor}')
+    if not re.fullmatch(r'[0-9]+', dados['MATRICULA']):
+        raise ComprovanteInvalido('matrícula deve conter somente dígitos ASCII')
+    if not re.fullmatch(r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}', dados['SESSAO']):
+        raise ComprovanteInvalido('sessão deve ser um UUID completo')
+    if not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z', dados['DATA']):
+        raise ComprovanteInvalido('DATA deve usar AAAA-MM-DDTHH:MM:SSZ, em UTC')
+    try:
+        datetime.strptime(dados['DATA'], '%Y-%m-%dT%H:%M:%SZ')
+    except ValueError as exc:
+        raise ComprovanteInvalido('data ou horário inexistente') from exc
+    if not re.fullmatch(r'SHA256:[0-9a-f]{64}', dados['CODIGO']):
+        raise ComprovanteInvalido('CODIGO deve ser SHA256: seguido de 64 hexadecimais minúsculos')
+    payload = b'\n'.join(conteudo.split(b'\n')[:6]) + b'\n'
+    calculado = hashlib.sha256(payload).hexdigest()
+    if not hmac.compare_digest(dados['CODIGO'][7:], calculado):
+        raise ComprovanteInvalido('SHA-256 divergente: conteúdo alterado ou código incorreto')
+    return dados
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('arquivos', nargs='+', type=Path, help='um ou mais arquivos TXT baixados do Moodle')
+    parser.add_argument('--matricula', help='matrícula esperada (comparação textual, incluindo zeros à esquerda)')
+    parser.add_argument('--conferir-nome', action='store_true', help='reprovar também se o nome do arquivo divergir dos campos')
+    args = parser.parse_args(argv)
+    if args.matricula is not None and not re.fullmatch(r'[0-9]+', args.matricula):
+        parser.error('--matricula deve conter somente dígitos ASCII')
+    print('Validação de formato e checksum; não comprova autenticidade ou autoria.')
+    erros = 0
+    for arquivo in args.arquivos:
+        try:
+            dados = validar(arquivo.read_bytes())
+            if args.matricula is not None and dados['MATRICULA'] != args.matricula:
+                raise ComprovanteInvalido('matrícula diferente da esperada')
+            esperado = f"usuarios-grupos_{dados['MATRICULA']}_{dados['SESSAO']}.txt"
+            if args.conferir_nome and arquivo.name != esperado:
+                raise ComprovanteInvalido(f'nome esperado: {esperado}')
+        except (OSError, ComprovanteInvalido) as exc:
+            print(f'INVÁLIDO {str(arquivo)!r}: {exc}')
+            erros += 1
+            continue
+        print(f"CONSISTENTE {str(arquivo)!r}: matrícula={dados['MATRICULA']} sessão={dados['SESSAO']} data={dados['DATA']}")
+        if arquivo.name != esperado:
+            print(f'  Aviso: nome diferente do esperado ({esperado}); conteúdo e hash conferem.')
+    print(f'{len(args.arquivos) - erros} consistente(s); {erros} inválido(s).')
+    return 1 if erros else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

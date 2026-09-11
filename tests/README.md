@@ -15,3 +15,5 @@ Os verificadores ficam em `usuarios-grupos/assets/verify-step*.sh`: o `index.jso
 A validação confere o estado final do ambiente. Ela não comprova quem digitou cada comando nem autentica a matrícula; o aluno tem acesso a root. O comprovante é um registro didático, sem assinatura ou validação externa.
 
 Depois de publicar alterações no GitHub, confira também uma nova sessão no Killercoda: a execução local não testa a sincronização nem a interface da plataforma.
+
+O fluxo também verifica a geração do TXT, nome e campos, SHA-256, alteração dos dados, reemissão, matrícula com zeros à esquerda, falha de publicação sem deixar arquivo parcial e geração de uma nova sessão. São asserções internas do teste em contêiner, não um validador para o professor. O contrato do arquivo está em [comprovante-v1.md](../docs/comprovante-v1.md).
