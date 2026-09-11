@@ -23,3 +23,14 @@ A integração opcional com Drive tem testes do cliente (curl simulado dentro do
 Para testar a gravação real em terminal (Docker necessário), execute `python3 tests/test_registro_pty.py`. O teste cria um contêiner descartável, verifica comandos de root/julia, ausência de entrada com eco desativado, prevenção de gravação aninhada e retomada sem apagar o histórico. Não envia dados ao Drive.
 
 A infraestrutura compartilhada é validada com `python3 ferramentas/laboratorios.py sincronizar --check` e `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v`. Os testes PTY e de novo cenário não são executados na descoberta automática. Para testar um segundo laboratório completo em Ubuntu descartável: `PYTHONDONTWRITEBYTECODE=1 python3 tests/test_novo_laboratorio.py`.
+
+## Partições: operações reais em dois discos virtuais
+
+Em uma máquina de desenvolvimento com Docker/Linux:
+
+```bash
+docker build -f tests/Dockerfile.particoes -t ifsul-particoes-test .
+docker run --rm --privileged -e LAB_TEST_CONTAINER=1 -v "$PWD:/lab:ro" ifsul-particoes-test bash /lab/tests/particoes-linux.sh
+```
+
+O container precisa de privilégios para loop e mount. O script se recusa a executar fora do container de testes e só cria/formata imagens próprias em `/var/lib/lab-particoes`; a limpeza desmonta os volumes do exercício e desassocia apenas seus loops. Não envia dados ao Drive. Verifica as oito etapas, recusa de avanço com pendências, rótulo incorreto, ausência de arquivos/backup, somente leitura, volume ocupado, desmontagem, montagem por UUID, exclusão, recuperação e emissão. Também confere regressão no estado final, preparação idempotente e checkpoints de outra sessão.

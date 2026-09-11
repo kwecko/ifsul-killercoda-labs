@@ -1,0 +1,121 @@
+{
+  "title": "Partições, sistemas de arquivos e montagem no Linux",
+  "description": "Atividade guiada para uma sessão de até 60 minutos: MBR/GPT, ext4/ext2/FAT32, montagem, diagnóstico e exclusão de partição.",
+  "backend": {
+    "imageid": "ubuntu"
+  },
+  "details": {
+    "intro": {
+      "text": "intro.md"
+    },
+    "finish": {
+      "text": "finish.md"
+    },
+    "steps": [
+      {
+        "title": "Identificação do aluno",
+        "text": "step0.md",
+        "verify": "assets/verify-step0.sh"
+      },
+      {
+        "title": "Reconhecer os discos",
+        "text": "step1.md",
+        "verify": "assets/verify-step1.sh"
+      },
+      {
+        "title": "Criar tabelas e partições",
+        "text": "step2.md",
+        "verify": "assets/verify-step2.sh"
+      },
+      {
+        "title": "Formatar os quatro volumes",
+        "text": "step3.md",
+        "verify": "assets/verify-step3.sh"
+      },
+      {
+        "title": "Montar e gravar arquivos",
+        "text": "step4.md",
+        "verify": "assets/verify-step4.sh"
+      },
+      {
+        "title": "Comparar ferramentas e diagnosticar somente leitura",
+        "text": "step5.md",
+        "verify": "assets/verify-step5.sh"
+      },
+      {
+        "title": "Desmontar os volumes",
+        "text": "step6.md",
+        "verify": "assets/verify-step6.sh"
+      },
+      {
+        "title": "Remontar por UUID e fazer backup",
+        "text": "step7.md",
+        "verify": "assets/verify-step7.sh"
+      },
+      {
+        "title": "Excluir uma partição e recuperar o arquivo",
+        "text": "step8.md",
+        "verify": "assets/verify-step8.sh"
+      }
+    ],
+    "assets": {
+      "host01": [
+        {
+          "file": "identificar-aluno",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "iniciar-registro",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "gerar-comprovante",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "enviar-comprovante",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "verify-step*.sh",
+          "target": "/usr/local/lib/laboratorio/",
+          "chmod": "+x"
+        },
+        {
+          "file": "laboratorio.sh",
+          "target": "/usr/local/lib/laboratorio/"
+        },
+        {
+          "file": "laboratorio.conf",
+          "target": "/usr/local/lib/laboratorio/"
+        },
+        {
+          "file": "drive-upload-url",
+          "target": "/usr/local/lib/laboratorio/"
+        },
+        {
+          "file": "normalizar-registro.pl",
+          "target": "/usr/local/lib/laboratorio/"
+        },
+        {
+          "file": "preparar-discos",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "atualizar-particoes",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "particoes.py",
+          "target": "/usr/local/lib/laboratorio/"
+        }
+      ]
+    }
+  }
+}

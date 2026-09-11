@@ -2,6 +2,11 @@
 
 Cada cenário usa a mesma infraestrutura de identificação, gravação do terminal, comprovante e envio ao Google Drive. Os enunciados e verificadores das tarefas pertencem a cada laboratório.
 
+## Atividades disponíveis
+
+- `usuarios-grupos`: contas, grupos e permissões.
+- `particoes-linux`: atividade guiada em uma sessão de até 60 minutos, dois discos virtuais de 1 GiB, MBR/GPT, ext4/ext2/FAT32, montagem, diagnóstico, backup e exclusão. Consulte o [guia do professor](professor/particoes-linux.md).
+
 ## Criar uma nova atividade
 
 Com Python 3.8 ou superior, na raiz do repositório:

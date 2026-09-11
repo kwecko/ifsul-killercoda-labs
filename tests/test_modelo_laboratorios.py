@@ -16,7 +16,9 @@ class ModeloTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
-        for nome in ('comum', 'modelo', 'professor', 'usuarios-grupos'):
+        # Copia todos os cenários: o catálogo acompanha os laboratórios reais.
+        cenarios = [p.parent.name for p in ROOT.glob('*/laboratorio.json')]
+        for nome in ('comum', 'modelo', 'professor', *cenarios):
             shutil.copytree(ROOT / nome, self.root / nome)
 
     def tearDown(self):

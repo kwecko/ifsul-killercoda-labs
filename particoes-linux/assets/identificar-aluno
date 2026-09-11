@@ -1,0 +1,88 @@
+#!/bin/bash
+set -e
+
+source /usr/local/lib/laboratorio/laboratorio.sh || exit 1
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Execute este comando na sessão de root."
+    exit 1
+fi
+
+umask 077
+
+ARQUIVO="/root/.laboratorio-aluno"
+
+ler_nome() {
+    read -r -p "Informe seu nome completo: " NOME
+    NOME=$(printf '%s' "$NOME" | sed 's/^ *//; s/ *$//')
+    if [ -z "$NOME" ] || [ "$(printf '%s' "$NOME" | wc -c)" -gt 200 ] ||
+       printf '%s' "$NOME" | LC_ALL=C grep -q '[[:cntrl:]]' ||
+       ! printf '%s' "$NOME" | iconv -f UTF-8 -t UTF-8 >/dev/null 2>&1; then
+        echo "Nome inválido: informe texto UTF-8 de até 200 bytes, sem caracteres de controle."
+        exit 1
+    fi
+}
+
+if [ -f "$ARQUIVO" ]; then
+    EXISTENTE=$(sed -n 's/^LABORATORIO=//p' "$ARQUIVO")
+    if [ -n "$EXISTENTE" ] && [ "$EXISTENTE" != "$LAB_ID" ]; then
+        echo "Este registro pertence a outro laboratório. Inicie uma nova sessão."
+        exit 1
+    fi
+    if [ -z "$EXISTENTE" ]; then
+        printf 'LABORATORIO=%s\n' "$LAB_ID" >> "$ARQUIVO"
+    fi
+    if ! grep -q '^NOME=' "$ARQUIVO"; then
+        ler_nome
+        printf 'NOME=%s\n' "$NOME" >> "$ARQUIVO"
+    fi
+    echo
+    echo "Aluno já identificado:"
+    cat "$ARQUIVO"
+    echo
+    if [ -t 0 ] && [ -t 1 ]; then
+        exec iniciar-registro
+    fi
+    exit 0
+fi
+
+echo
+echo "========================================"
+echo " IDENTIFICAÇÃO DO ALUNO"
+echo "========================================"
+echo
+
+read -r -p "Informe sua matrícula: " MATRICULA
+
+if ! [[ "$MATRICULA" =~ ^[0-9]+$ ]]; then
+    echo "Matrícula inválida."
+    exit 1
+fi
+
+ler_nome
+
+SESSAO=$(cat /proc/sys/kernel/random/uuid)
+DATA=$(date "+%Y-%m-%d %H:%M:%S")
+
+cat > "$ARQUIVO" <<EOF
+LABORATORIO=$LAB_ID
+MATRICULA=$MATRICULA
+NOME=$NOME
+SESSAO=$SESSAO
+INICIO="$DATA"
+EOF
+
+chmod 600 "$ARQUIVO"
+
+echo
+echo "Identificação registrada."
+echo "Matrícula: $MATRICULA"
+echo "Nome: $NOME"
+echo "Sessão: $SESSAO"
+echo
+
+if [ -t 0 ] && [ -t 1 ]; then
+    exec iniciar-registro
+else
+    echo "No terminal interativo, execute iniciar-registro antes de realizar as etapas."
+fi

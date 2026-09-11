@@ -1,0 +1,101 @@
+#!/bin/bash
+set -euo pipefail
+
+source /usr/local/lib/laboratorio/laboratorio.sh || exit 1
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Retorne à sessão de root com exit antes de gerar o comprovante."
+    exit 1
+fi
+
+ARQUIVO="/root/.laboratorio-aluno"
+VERIFICACOES="/usr/local/lib/laboratorio"
+
+if [ ! -f "$ARQUIVO" ]; then
+    echo "Aluno não identificado."
+    exit 1
+fi
+
+# Reutiliza os mesmos critérios dos botões CHECK, sem duplicar as regras.
+ERROS=0
+for verificador in "${LAB_VERIFICADORES[@]}"; do
+    SCRIPT="$VERIFICACOES/$verificador"
+    if [ ! -f "$SCRIPT" ]; then
+        echo "Verificação indisponível: $verificador. Reinicie o laboratório em uma nova sessão."
+        ERROS=$((ERROS + 1))
+    elif ! bash "$SCRIPT"; then
+        echo "Requisito pendente: $verificador."
+        ERROS=$((ERROS + 1))
+    fi
+done
+if [ "$ERROS" -ne 0 ]; then
+    echo "Comprovante não emitido. Corrija os requisitos indicados e tente novamente."
+    exit 1
+fi
+
+MATRICULA=$(sed -n 's/^MATRICULA=//p' "$ARQUIVO")
+NOME=$(sed -n 's/^NOME=//p' "$ARQUIVO")
+SESSAO=$(sed -n 's/^SESSAO=//p' "$ARQUIVO")
+REGISTRO="/root/registros/$SESSAO.log"
+if [ ! -s "$REGISTRO" ]; then
+    echo "Registro do terminal ausente. Execute iniciar-registro e realize as tarefas nesse terminal."
+    exit 1
+fi
+if [ "$(wc -c < "$REGISTRO")" -gt 1048576 ]; then
+    echo "Registro maior que 1 MiB. Baixe o registro e consulte o professor; não apague o histórico."
+    exit 1
+fi
+# Formato v2: UTF-8 sem BOM, linhas LF, ordem fixa e LF final.
+# SHA-256 detecta alterações sem recálculo; não autentica a origem da VM.
+DATA_FINAL=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+DIRETORIO="/root/comprovantes"
+DESTINO="$DIRETORIO/${LAB_ID}_${MATRICULA}_${SESSAO}.txt"
+mkdir -p "$DIRETORIO"
+TEMPORARIO=$(mktemp "$DIRETORIO/.comprovante.XXXXXXXXXX")
+trap 'rm -f -- "$TEMPORARIO"' EXIT
+
+printf '%s\n' \
+    'VERSAO=2' \
+    "LABORATORIO=$LAB_ID" \
+    "MATRICULA=$MATRICULA" \
+    "NOME=$NOME" \
+    "SESSAO=$SESSAO" \
+    "DATA=$DATA_FINAL" \
+    'RESULTADO=CONCLUIDO' > "$TEMPORARIO"
+CODIGO=$(sha256sum "$TEMPORARIO")
+CODIGO=${CODIGO%% *}
+printf 'CODIGO=SHA256:%s\n' "$CODIGO" >> "$TEMPORARIO"
+# Congela o histórico antes da emissão/envio. Reenvios usam estes mesmos bytes.
+HISTORICO="$DIRETORIO/${LAB_ID}_${MATRICULA}_${SESSAO}_${CODIGO}_historico.log"
+if [ ! -e "$HISTORICO" ]; then
+    SNAPSHOT=$(mktemp "$DIRETORIO/.historico.XXXXXXXXXX")
+    LIMPO=$(mktemp "$DIRETORIO/.historico-legivel.XXXXXXXXXX")
+    trap 'rm -f -- "$TEMPORARIO" "${SNAPSHOT:-}" "${LIMPO:-}"' EXIT
+    cp -- "$REGISTRO" "$SNAPSHOT"
+    if [ "$(wc -c < "$SNAPSHOT")" -gt 1048576 ]; then
+        echo "Registro maior que 1 MiB. Consulte o professor."
+        exit 1
+    fi
+    perl "$VERIFICACOES/normalizar-registro.pl" "$SNAPSHOT" > "$LIMPO"
+    chmod 600 "$LIMPO"
+    mv -fT -- "$LIMPO" "$HISTORICO"
+    rm -f -- "$SNAPSHOT"
+fi
+chmod 644 "$TEMPORARIO"
+# Publica somente o TXT completo. Nova geração substitui o da mesma sessão.
+mv -fT -- "$TEMPORARIO" "$DESTINO"
+
+printf '\nComprovante gerado: %s\n\n' "$DESTINO"
+cat "$DESTINO"
+printf '\nHistórico associado: %s\n' "$HISTORICO"
+printf '\nBaixe o arquivo pelo Editor: abra /root/comprovantes, clique com o botão direito no TXT e escolha Download.\n'
+printf 'Envie o arquivo TXT baixado na atividade do Moodle, antes de encerrar o ambiente.\n'
+
+if [ -s /usr/local/lib/laboratorio/drive-upload-url ]; then
+    if ! enviar-comprovante; then
+        echo "Comprovante gerado localmente, mas o envio ao Drive não foi confirmado."
+        echo "Para repetir apenas o envio, execute enviar-comprovante."
+    fi
+else
+    echo "Envio automático ao Drive ainda não configurado; use o download pelo Editor."
+fi

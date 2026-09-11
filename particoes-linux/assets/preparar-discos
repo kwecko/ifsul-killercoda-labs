@@ -1,0 +1,39 @@
+#!/bin/bash
+set -euo pipefail
+[ "$EUID" = 0 ] || { echo 'Execute como root.'; exit 1; }
+BASE=/var/lib/lab-particoes
+mkdir -p "$BASE"
+exec 9>"$BASE/preparacao.lock"
+flock -x 9
+if ! command -v parted >/dev/null || ! command -v mkfs.vfat >/dev/null || ! command -v python3 >/dev/null || ! command -v partprobe >/dev/null || ! command -v mkfs.ext4 >/dev/null || ! command -v fdisk >/dev/null; then
+    echo 'Instalando ferramentas de particionamento. Aguarde...'
+    apt-get -o DPkg::Lock::Timeout=120 update
+    DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=120 install -y parted fdisk dosfstools e2fsprogs util-linux python3
+fi
+for nome in mbr gpt; do
+    imagem="$BASE/$nome.img"
+    # Nunca recria nem zera um disco existente ao repetir a preparação.
+    if [ ! -e "$imagem" ]; then truncate -s 1G "$imagem"; fi
+    [ -f "$imagem" ] && [ ! -L "$imagem" ] && [ "$(stat -c %s "$imagem")" = 1073741824 ] || { echo 'Imagem inesperada. Abra uma nova sessão.'; exit 1; }
+    mapfile -t associados < <(losetup -j "$imagem" -n -O NAME)
+    [ "${#associados[@]}" -le 1 ] || { echo 'Mais de um loop associado à imagem. Consulte o professor.'; exit 1; }
+    if [ "${#associados[@]}" = 0 ]; then
+        dispositivo=$(losetup --find --show --partscan "$imagem")
+    else
+        dispositivo=${associados[0]}
+    fi
+    [[ "$dispositivo" =~ ^/dev/loop[0-9]+$ ]] || exit 1
+    printf -v "${nome^^}" '%s' "$dispositivo"
+done
+printf 'export MBR=%q\nexport GPT=%q\n' "$MBR" "$GPT" > /root/discos.env
+python3 - "$BASE" "$MBR" "$GPT" <<'PYTHON'
+import json, pathlib, sys
+base, mbr, gpt = sys.argv[1:]
+p = pathlib.Path(base) / 'discos.json'
+p.write_text(json.dumps({'mbr':mbr, 'gpt':gpt}))
+PYTHON
+mkdir -p /root/relatorio-discos
+printf '\nDois discos de 1 GiB prontos: MBR=%s e GPT=%s\n' "$MBR" "$GPT"
+echo 'Os nomes são destinos planejados: você criará as tabelas MBR e GPT na etapa 2.'
+echo 'Execute: source /root/discos.env'
+lsblk -b -o NAME,SIZE,TYPE "$MBR" "$GPT"

@@ -1,0 +1,2 @@
+FROM ubuntu:24.04
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends parted fdisk dosfstools e2fsprogs util-linux python3 perl ca-certificates && rm -rf /var/lib/apt/lists/*

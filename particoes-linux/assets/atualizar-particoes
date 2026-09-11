@@ -1,0 +1,21 @@
+#!/bin/bash
+set -euo pipefail
+# Atualiza somente os loops associados às imagens deste laboratório.
+python3 /usr/local/lib/laboratorio/particoes.py dispositivos >/dev/null
+source /root/discos.env
+for disco in "$MBR" "$GPT"; do
+    partprobe "$disco"
+done
+if command -v udevadm >/dev/null; then udevadm settle; fi
+# VMs com udev criam os nós automaticamente. O fallback atende ambientes mínimos.
+for disco in "$MBR" "$GPT"; do
+    for sys in /sys/class/block/"${disco##*/}"p*; do
+        [ -e "$sys/dev" ] || continue
+        no="/dev/${sys##*/}"
+        if [ ! -e "$no" ]; then
+            IFS=: read -r maior menor < "$sys/dev"
+            mknod -m 600 "$no" b "$maior" "$menor"
+        fi
+    done
+done
+lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL "$MBR" "$GPT"

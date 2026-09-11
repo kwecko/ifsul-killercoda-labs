@@ -1,6 +1,11 @@
 // Instalar no Google Apps Script da conta do professor; não enviar à VM.
 // BEGIN CATALOGO GERADO
 const LABORATORIOS = {
+  "particoes-linux": {
+    "titulo": "Partições, sistemas de arquivos e montagem no Linux",
+    "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",
+    "recebimento_ativo": true
+  },
   "usuarios-grupos": {
     "titulo": "Gerenciamento de Usuários e Grupos no Linux",
     "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",
