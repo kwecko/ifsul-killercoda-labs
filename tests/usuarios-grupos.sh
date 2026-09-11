@@ -10,7 +10,7 @@ BASE=$(cd "$(dirname "$0")/../usuarios-grupos" && pwd)
 install -d /usr/local/lib/laboratorio
 install -m 755 "$BASE"/assets/verify-step*.sh /usr/local/lib/laboratorio/
 install -m 755 "$BASE"/assets/identificar-aluno "$BASE"/assets/gerar-comprovante /usr/local/bin/
-install -m 755 "$BASE"/assets/enviar-comprovante /usr/local/bin/
+install -m 755 "$BASE"/assets/enviar-comprovante "$BASE"/assets/iniciar-registro /usr/local/bin/
 # Nunca carregar uma URL real nos testes.
 : > /usr/local/lib/laboratorio/drive-upload-url
 CHECKS=/usr/local/lib/laboratorio
@@ -39,6 +39,10 @@ falha bash -c "printf 'abc\n' | identificar-aluno"
 passa bash -c "printf '20261234\n' | identificar-aluno"
 [ "$(stat -c %a /root/.laboratorio-aluno)" = 600 ]
 passa bash "$CHECKS/verify-step0.sh"
+# O teste de regras é não interativo; o teste PTY separado verifica a gravação real.
+mkdir -p /root/registros
+SESSAO_TESTE=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
+printf 'registro simulado para teste das regras\n' > "/root/registros/$SESSAO_TESTE.log"
 cp /root/.laboratorio-aluno /tmp/identificacao-original
 passa bash -c "printf '999\n' | identificar-aluno"
 cmp /tmp/identificacao-original /root/.laboratorio-aluno
@@ -189,6 +193,7 @@ passa bash -c "printf '20261234\n' | identificar-aluno"
 NOVA_SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
 [ "$NOVA_SESSAO" != "$SESSAO" ]
 passa bash "$CHECKS/verify-step0.sh"
+printf 'registro simulado da nova sessão\n' > "/root/registros/$NOVA_SESSAO.log"
 # Exercita o cliente de upload com rede simulada, sem dados enviados ao Google.
 passa gerar-comprovante
 TXT="/root/comprovantes/usuarios-grupos_20261234_${NOVA_SESSAO}.txt"
@@ -209,7 +214,13 @@ for ARG in "$@"; do
     case "$ARG" in @*) TXT=${ARG#@} ;; esac
 done
 [ -f "$TXT" ]
-printf 'OK\nARQUIVO=%s\nCODIGO=%s' "$(basename "$TXT")" "$(sed -n 's/^CODIGO=//p' "$TXT")"
+sed -n 's/.*"comprovante":"\([^"]*\)".*/\1/p' "$TXT" | base64 -d > /tmp/mock-comprovante.txt
+sed -n 's/.*"registro":"\([^"]*\)".*/\1/p' "$TXT" | base64 -d > /tmp/mock-registro.log
+M=$(sed -n 's/^MATRICULA=//p' /tmp/mock-comprovante.txt)
+S=$(sed -n 's/^SESSAO=//p' /tmp/mock-comprovante.txt)
+C=$(sed -n 's/^CODIGO=//p' /tmp/mock-comprovante.txt)
+H=$(sha256sum /tmp/mock-registro.log | cut -d ' ' -f1)
+printf 'OK\nARQUIVO=usuarios-grupos_%s_%s.txt\nCODIGO=%s\nREGISTRO=usuarios-grupos_%s_%s_%s_historico.log\nREGISTRO_SHA256=%s' "$M" "$S" "$C" "$M" "$S" "${C#SHA256:}" "$H"
 MOCK
 chmod +x /tmp/lab-mock-bin/curl
 export PATH="/tmp/lab-mock-bin:$PATH"
@@ -238,4 +249,14 @@ falha enviar-comprovante
 [ "$(wc -l < /tmp/lab-curl-calls)" -eq "$CHAMADAS" ]
 chmod 770 /empresa/administracao
 passa enviar-comprovante
+# O histórico enviado é um snapshot: comandos posteriores não mudam um reenvio.
+printf 'comando posterior\n' >> "/root/registros/$NOVA_SESSAO.log"
+passa enviar-comprovante
+if grep -q 'comando posterior' /tmp/mock-registro.log; then exit 1; fi
+LOG="/root/registros/$NOVA_SESSAO.log"
+mv "$LOG" "$LOG.ausente"
+falha gerar-comprovante
+mv "$LOG.ausente" "$LOG"
+truncate -s 1048577 "$LOG"
+falha gerar-comprovante
 printf 'OK: %s verificações positivas e negativas no Ubuntu.\n' "$TOTAL"

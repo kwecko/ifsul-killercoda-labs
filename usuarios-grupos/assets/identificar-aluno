@@ -15,6 +15,9 @@ if [ -f "$ARQUIVO" ]; then
     echo "Aluno já identificado:"
     cat "$ARQUIVO"
     echo
+    if [ -t 0 ] && [ -t 1 ]; then
+        exec iniciar-registro
+    fi
     exit 0
 fi
 
@@ -47,3 +50,9 @@ echo "Identificação registrada."
 echo "Matrícula: $MATRICULA"
 echo "Sessão: $SESSAO"
 echo
+
+if [ -t 0 ] && [ -t 1 ]; then
+    exec iniciar-registro
+else
+    echo "No terminal interativo, execute iniciar-registro antes de realizar as etapas."
+fi

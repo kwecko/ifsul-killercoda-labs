@@ -35,21 +35,41 @@ if ! [[ "$CODIGO" =~ ^SHA256:[0-9a-f]{64}$ ]]; then
     echo "Comprovante inválido. Gere novamente com gerar-comprovante."
     exit 1
 fi
+HISTORICO="/root/comprovantes/usuarios-grupos_${MATRICULA}_${SESSAO}_${CODIGO#SHA256:}_historico.log"
+if [ ! -s "$HISTORICO" ] || [ "$(wc -c < "$HISTORICO")" -gt 1048576 ]; then
+    echo "Histórico ausente ou maior que 1 MiB. Gere novamente o comprovante ou consulte o professor."
+    exit 1
+fi
+HASH_REGISTRO=$(sha256sum "$HISTORICO")
+HASH_REGISTRO=${HASH_REGISTRO%% *}
+PACOTE=$(mktemp)
+trap 'rm -f -- "$PACOTE"' EXIT
+chmod 600 "$PACOTE"
+# Base64 conserva exatamente os bytes, inclusive caracteres de controle do terminal.
+{
+    printf '{"versao":2,"comprovante":"'
+    base64 -w 0 "$TXT"
+    printf '","registro":"'
+    base64 -w 0 "$HISTORICO"
+    printf '"}'
+} > "$PACOTE"
 # -L segue o redirecionamento do ContentService; não forçar POST após o 302.
 if ! RESPOSTA=$(curl --silent --show-error --fail --location \
     --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 45 \
-    --max-filesize 4096 --header 'Content-Type: text/plain; charset=utf-8' \
-    --data-binary "@$TXT" "$URL"); then
-    echo "Envio sem confirmação. O TXT permanece salvo; tente enviar-comprovante novamente."
+    --max-filesize 4096 --header 'Content-Type: application/json' \
+    --data-binary "@$PACOTE" "$URL"); then
+    echo "Envio sem confirmação. Os arquivos permanecem salvos; tente enviar-comprovante novamente."
     exit 1
 fi
-ESPERADA=$(printf 'OK\nARQUIVO=%s\nCODIGO=%s' "$NOME" "$CODIGO")
+ESPERADA=$(printf 'OK\nARQUIVO=%s\nCODIGO=%s\nREGISTRO=%s\nREGISTRO_SHA256=%s' "$NOME" "$CODIGO" "$(basename "$HISTORICO")" "$HASH_REGISTRO")
 if [ "$RESPOSTA" != "$ESPERADA" ]; then
     case "$RESPOSTA" in
         ERRO=RECEBIMENTO_ENCERRADO|ERRO=LIMITE_DIARIO|ERRO=LIMITE_VERSOES)
-            echo "Recebimento indisponível ou limite atingido. Avise o professor e baixe o TXT." ;;
-        *) echo "O Drive não confirmou o recebimento. Tente novamente ou entregue o TXT baixado." ;;
+            echo "Recebimento indisponível ou limite atingido. Avise o professor e baixe os dois arquivos." ;;
+        ERRO=FORMATO_INVALIDO)
+            echo "Envio recusado. O professor deve conferir o formato e atualizar a implantação do Apps Script para receber histórico." ;;
+        *) echo "O Drive não confirmou o recebimento dos dois arquivos. Tente novamente ou entregue os arquivos baixados." ;;
     esac
     exit 1
 fi
-printf 'Recebimento confirmado no Google Drive: %s\n' "$NOME"
+printf 'Recebimento confirmado no Google Drive: %s e %s\n' "$NOME" "$(basename "$HISTORICO")"

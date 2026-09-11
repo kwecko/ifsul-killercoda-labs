@@ -12,4 +12,4 @@ Realize as configurações como `root`. Na última etapa, use a conta `julia` pa
 
 Em cada etapa, confira o resultado no terminal e pressione **CHECK** antes de avançar. O comprovante final confere novamente os requisitos; mantenha as configurações das etapas anteriores.
 
-Use uma senha exclusiva para este exercício. O ambiente é temporário: gere e baixe seu comprovante `.txt` antes de encerrá-lo. Esse arquivo será sua entrega no Moodle.
+Use uma senha exclusiva para este exercício. O ambiente é temporário: gere e baixe seu comprovante `.txt` antes de encerrá-lo. O comprovante e o registro do terminal serão os arquivos da entrega. A gravação começa na identificação: trabalhe na mesma aba durante toda a atividade.

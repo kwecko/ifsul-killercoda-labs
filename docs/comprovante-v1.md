@@ -10,6 +10,8 @@ Destino: `/root/comprovantes/usuarios-grupos_<matricula>_<sessao>.txt`.
 
 O arquivo é escrito primeiro em um temporário no mesmo diretório e renomeado após a gravação completa. Uma nova emissão válida substitui o arquivo da mesma matrícula/sessão e registra a data dessa emissão. Uma tentativa reprovada não cria nem substitui o TXT; se houver uma emissão anterior, ela permanece como registro daquela emissão, não do estado atual. O script não revoga cópias já baixadas.
 
+A emissão também exige o registro do terminal e cria um snapshot separado, descrito em [registro-terminal.md](registro-terminal.md). O formato do TXT v1 permanece inalterado.
+
 O download é feito pelo menu Download do explorador do Editor do Killercoda. Não é necessário iniciar servidor HTTP nem instalar pacotes adicionais. O aluno entrega o TXT original no Moodle.
 
 ## Serialização exata

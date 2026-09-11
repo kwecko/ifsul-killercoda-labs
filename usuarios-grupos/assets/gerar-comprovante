@@ -34,6 +34,15 @@ fi
 
 MATRICULA=$(sed -n 's/^MATRICULA=//p' "$ARQUIVO")
 SESSAO=$(sed -n 's/^SESSAO=//p' "$ARQUIVO")
+REGISTRO="/root/registros/$SESSAO.log"
+if [ ! -s "$REGISTRO" ]; then
+    echo "Registro do terminal ausente. Execute iniciar-registro e realize as tarefas nesse terminal."
+    exit 1
+fi
+if [ "$(wc -c < "$REGISTRO")" -gt 1048576 ]; then
+    echo "Registro maior que 1 MiB. Baixe o registro e consulte o professor; não apague o histórico."
+    exit 1
+fi
 # Formato v1: UTF-8 sem BOM, linhas LF, ordem fixa e LF final.
 # SHA-256 detecta alterações sem recálculo; não autentica a origem da VM.
 DATA_FINAL=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
@@ -53,12 +62,26 @@ printf '%s\n' \
 CODIGO=$(sha256sum "$TEMPORARIO")
 CODIGO=${CODIGO%% *}
 printf 'CODIGO=SHA256:%s\n' "$CODIGO" >> "$TEMPORARIO"
+# Congela o histórico antes da emissão/envio. Reenvios usam estes mesmos bytes.
+HISTORICO="$DIRETORIO/usuarios-grupos_${MATRICULA}_${SESSAO}_${CODIGO}_historico.log"
+if [ ! -e "$HISTORICO" ]; then
+    SNAPSHOT=$(mktemp "$DIRETORIO/.historico.XXXXXXXXXX")
+    trap 'rm -f -- "$TEMPORARIO" "${SNAPSHOT:-}"' EXIT
+    cp -- "$REGISTRO" "$SNAPSHOT"
+    if [ "$(wc -c < "$SNAPSHOT")" -gt 1048576 ]; then
+        echo "Registro maior que 1 MiB. Consulte o professor."
+        exit 1
+    fi
+    chmod 600 "$SNAPSHOT"
+    mv -fT -- "$SNAPSHOT" "$HISTORICO"
+fi
 chmod 644 "$TEMPORARIO"
 # Publica somente o TXT completo. Nova geração substitui o da mesma sessão.
 mv -fT -- "$TEMPORARIO" "$DESTINO"
 
 printf '\nComprovante gerado: %s\n\n' "$DESTINO"
 cat "$DESTINO"
+printf '\nHistórico associado: %s\n' "$HISTORICO"
 printf '\nBaixe o arquivo pelo Editor: abra /root/comprovantes, clique com o botão direito no TXT e escolha Download.\n'
 printf 'Envie o arquivo TXT baixado na atividade do Moodle, antes de encerrar o ambiente.\n'
 

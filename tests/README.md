@@ -19,3 +19,5 @@ Depois de publicar alterações no GitHub, confira também uma nova sessão no K
 O fluxo também verifica a geração do TXT, nome e campos, SHA-256, alteração dos dados, reemissão, matrícula com zeros à esquerda, falha de publicação sem deixar arquivo parcial e geração de uma nova sessão. São asserções internas do teste em contêiner, não um validador para o professor. O contrato do arquivo está em [comprovante-v1.md](../docs/comprovante-v1.md).
 
 A integração opcional com Drive tem testes do cliente (curl simulado dentro do contêiner) e do receptor: `node tests/test_google_drive.cjs`. Nenhum desses testes envia arquivos ao Google.
+
+Para testar a gravação real em terminal (Docker necessário), execute `python3 tests/test_registro_pty.py`. O teste cria um contêiner descartável, verifica comandos de root/julia, ausência de entrada com eco desativado, prevenção de gravação aninhada e retomada sem apagar o histórico. Não envia dados ao Drive.
