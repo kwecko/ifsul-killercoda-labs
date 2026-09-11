@@ -7,6 +7,11 @@
     },
     "steps": [
       {
+        "title": "Identificação do aluno",
+        "text": "step0.md",
+        "verify": "verify-step0.sh"
+      },
+      {
         "title": "Gerenciamento de grupos",
         "text": "step1.md",
         "verify": "verify-step1.sh"
@@ -15,33 +20,47 @@
         "title": "Gerenciamento de usuários",
         "text": "step2.md",
         "verify": "verify-step2.sh"
-      }
+      },
       {
         "title": "Configuração das contas",
         "text": "step3.md",
         "verify": "verify-step3.sh"
-      }
+      },
       {
         "title": "Estrutura de diretórios compartilhados",
         "text": "step4.md",
         "verify": "verify-step4.sh"
-      }
+      },
       {
         "title": "Permissões de acesso",
         "text": "step5.md",
         "verify": "verify-step5.sh"
-      }
+      },
       {
         "title": "Teste de acesso e manipulação de arquivos",
         "text": "step6.md",
         "verify": "verify-step6.sh"
       }
     ],
-      "finish": {
+    "finish": {
       "text": "finish.md"
     }
   },
   "backend": {
     "imageid": "ubuntu"
+  },
+  "assets": {
+    "host01": [
+      {
+        "file": "identificar.sh",
+        "target": "/usr/local/bin/identificar-aluno",
+        "chmod": "+x"
+      },
+      {
+        "file": "gerar-comprovante.sh",
+        "target": "/usr/local/bin/gerar-comprovante",
+        "chmod": "+x"
+      }
+    ]
   }
 }
