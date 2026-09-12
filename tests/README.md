@@ -45,3 +45,14 @@ docker run --rm --privileged -e LAB_TEST_CONTAINER=1 -v "$PWD:/lab:ro" ifsul-arp
 ```
 
 O container precisa de privilégios para criar *network namespaces*, interfaces `veth` e um bridge. O script cria apenas os três namespaces do exercício (`estacao-a`, `estacao-b`, `estacao-c`) e o bridge `br-lab`; a limpeza os remove ao final. Não envia dados ao Drive nem toca na interface de rede real do container. Verifica as seis etapas, recusa de avanço com pendências, visibilidade de broadcast/unicast em uma LAN comutada, aprendizado legítimo, envenenamento por ARP gratuito forjado (incluindo a diferença entre um pedido e uma resposta gratuita), resistência de uma entrada estática ao mesmo ataque, diagnóstico final e emissão do comprovante. Também confere checkpoints de outra sessão.
+
+## ARP entre redes: duas sub-redes e um roteador simulados
+
+Em uma máquina de desenvolvimento com Docker/Linux:
+
+```bash
+docker build -f tests/Dockerfile.arp-roteador -t ifsul-arp-roteador-test .
+docker run --rm --privileged -e LAB_TEST_CONTAINER=1 -v "$PWD:/lab:ro" ifsul-arp-roteador-test bash /lab/tests/arp-roteador.sh
+```
+
+O container precisa dos mesmos privilégios do teste de ARP. O script cria dois bridges (`br-a`, `br-b`) e três namespaces (`estacao-a`, `estacao-b`, `roteador`); a limpeza os remove ao final. Verifica as cinco etapas, recusa de avanço com pendências, que a estação de origem só resolve por ARP o gateway (nunca o IP em outra rede), que é o roteador quem refaz a resolução na rede de destino, a troca de endereços de enlace a cada salto com o IP constante, e que a ausência de rota impede qualquer tentativa de ARP. Também confere checkpoints de outra sessão.

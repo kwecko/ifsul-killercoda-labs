@@ -7,6 +7,7 @@ Cada cenário usa a mesma infraestrutura de identificação, gravação do termi
 - `usuarios-grupos`: contas, grupos e permissões.
 - `particoes-linux`: atividade guiada em uma sessão de até 60 minutos, dois discos virtuais de 1 GiB, MBR/GPT, ext4/ext2/FAT32, montagem, diagnóstico, backup e exclusão. Consulte o [guia do professor](professor/particoes-linux.md).
 - `arp`: atividade guiada em uma sessão de até 60 minutos sobre o protocolo ARP — requisição/resposta, broadcast vs. unicast em uma LAN comutada, aprendizado, ARP gratuito, falsificação (spoofing) e entrada estática, com três estações simuladas por *network namespaces*. Consulte o [guia do professor](professor/arp.md).
+- `arp-roteador`: continuação de `arp` em uma sessão de até 60 minutos — por que uma estação só resolve por ARP o gateway (nunca o destino final fora da sua rede), como o roteador refaz a resolução na rede de destino, e por que o endereço de enlace muda a cada salto enquanto o IP permanece o mesmo, com duas sub-redes e um roteador simulados por *network namespaces*. Consulte o [guia do professor](professor/arp-roteador.md).
 
 ## Criar uma nova atividade
 

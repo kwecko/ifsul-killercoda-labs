@@ -1,0 +1,29 @@
+#!/bin/bash
+set -euo pipefail
+
+source /usr/local/lib/laboratorio/laboratorio.sh || exit 1
+if [ "$EUID" -ne 0 ]; then
+    echo "Inicie a gravação na sessão de root."
+    exit 1
+fi
+bash /usr/local/lib/laboratorio/verify-step0.sh || {
+    echo "Registre sua matrícula com identificar-aluno antes de iniciar a gravação."
+    exit 1
+}
+SESSAO=$(sed -n 's/^SESSAO=//p' /root/.laboratorio-aluno)
+if [ "${LAB_REGISTRO_ATIVO:-}" = "$SESSAO" ]; then
+    echo "A gravação já está ativa neste terminal."
+    exit 0
+fi
+if [ ! -t 0 ] || [ ! -t 1 ]; then
+    echo "Execute iniciar-registro no terminal interativo do laboratório."
+    exit 1
+fi
+umask 077
+mkdir -p /root/registros
+export LAB_REGISTRO_ATIVO="$SESSAO"
+echo "Gravação iniciada: realize todas as etapas neste terminal."
+echo "Comandos e saídas visíveis serão enviados ao professor. Use somente senhas de exercício."
+# Somente saída do terminal: não usar --log-in/--log-io, que capturam senhas ocultas.
+script --quiet --flush --append --return --log-out "/root/registros/$SESSAO.log" --command '/bin/bash -i'
+echo "Gravação encerrada. Para continuar a atividade, execute iniciar-registro novamente."

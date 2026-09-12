@@ -1,0 +1,35 @@
+{
+  "id": "arp-roteador",
+  "titulo": "ARP entre redes: o papel do roteador na entrega",
+  "descricao": "Atividade guiada para uma sessão de até 60 minutos: por que uma estação resolve por ARP apenas o gateway, como o roteador refaz a resolução na rede de destino, e por que os endereços de enlace mudam a cada salto enquanto o IP permanece o mesmo — com duas sub-redes e um roteador simulados por network namespaces.",
+  "imagem": "ubuntu",
+  "recebimento_ativo": false,
+  "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",
+  "etapas": [
+    {
+      "title": "Reconhecer a topologia",
+      "text": "step1.md",
+      "verify": "assets/verify-step1.sh"
+    },
+    {
+      "title": "A estação só resolve o gateway por ARP",
+      "text": "step2.md",
+      "verify": "assets/verify-step2.sh"
+    },
+    {
+      "title": "O roteador refaz a resolução na outra rede",
+      "text": "step3.md",
+      "verify": "assets/verify-step3.sh"
+    },
+    {
+      "title": "O endereço de enlace muda a cada salto; o IP não",
+      "text": "step4.md",
+      "verify": "assets/verify-step4.sh"
+    },
+    {
+      "title": "Sem rota não há tentativa de ARP",
+      "text": "step5.md",
+      "verify": "assets/verify-step5.sh"
+    }
+  ]
+}

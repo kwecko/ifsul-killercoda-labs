@@ -6,6 +6,11 @@ const LABORATORIOS = {
     "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",
     "recebimento_ativo": false
   },
+  "arp-roteador": {
+    "titulo": "ARP entre redes: o papel do roteador na entrega",
+    "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",
+    "recebimento_ativo": false
+  },
   "particoes-linux": {
     "titulo": "Partições, sistemas de arquivos e montagem no Linux",
     "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",

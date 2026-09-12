@@ -1,0 +1,81 @@
+#!/bin/bash
+set -euo pipefail
+[ "$EUID" = 0 ] || { echo 'Execute como root.'; exit 1; }
+BASE=/var/lib/lab-arp-roteador
+mkdir -p "$BASE"
+exec 9>"$BASE/preparacao.lock"
+flock -x 9
+if ! command -v tcpdump >/dev/null || ! command -v python3 >/dev/null || ! command -v ping >/dev/null || ! ip -Version >/dev/null 2>&1; then
+    echo 'Instalando ferramentas de rede. Aguarde...'
+    apt-get -o DPkg::Lock::Timeout=120 update
+    DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=120 install -y iproute2 tcpdump python3 iputils-ping
+fi
+
+existe_ns() { ip netns list | awk '{print $1}' | grep -qx "$1"; }
+existe_link() { ip -n "$1" link show "$2" >/dev/null 2>&1; }
+
+for br in br-a br-b; do
+    ip link show "$br" >/dev/null 2>&1 || ip link add "$br" type bridge
+    ip link set "$br" up
+done
+
+for ns in estacao-a estacao-b roteador; do
+    existe_ns "$ns" || ip netns add "$ns"
+done
+
+if ! existe_link estacao-a veth-a; then
+    ip link add veth-a netns estacao-a type veth peer name veth-a-sw
+fi
+ip link set veth-a-sw master br-a
+ip link set veth-a-sw up
+ip -n estacao-a link set lo up
+ip -n estacao-a link set veth-a up
+
+if ! existe_link estacao-b veth-b; then
+    ip link add veth-b netns estacao-b type veth peer name veth-b-sw
+fi
+ip link set veth-b-sw master br-b
+ip link set veth-b-sw up
+ip -n estacao-b link set lo up
+ip -n estacao-b link set veth-b up
+
+if ! existe_link roteador rot-a; then
+    ip link add rot-a netns roteador type veth peer name rot-a-sw
+fi
+ip link set rot-a-sw master br-a
+ip link set rot-a-sw up
+if ! existe_link roteador rot-b; then
+    ip link add rot-b netns roteador type veth peer name rot-b-sw
+fi
+ip link set rot-b-sw master br-b
+ip link set rot-b-sw up
+ip -n roteador link set lo up
+ip -n roteador link set rot-a up
+ip -n roteador link set rot-b up
+
+ip -n estacao-a addr show veth-a | grep -q ' 10.77.1.10/24 ' || ip -n estacao-a addr add 10.77.1.10/24 dev veth-a
+ip -n estacao-b addr show veth-b | grep -q ' 10.77.2.10/24 ' || ip -n estacao-b addr add 10.77.2.10/24 dev veth-b
+ip -n roteador addr show rot-a | grep -q ' 10.77.1.1/24 ' || ip -n roteador addr add 10.77.1.1/24 dev rot-a
+ip -n roteador addr show rot-b | grep -q ' 10.77.2.1/24 ' || ip -n roteador addr add 10.77.2.1/24 dev rot-b
+
+ip -n estacao-a route show default | grep -q 'via 10.77.1.1' || { ip -n estacao-a route del default 2>/dev/null || true; ip -n estacao-a route add default via 10.77.1.1; }
+ip -n estacao-b route show default | grep -q 'via 10.77.2.1' || { ip -n estacao-b route del default 2>/dev/null || true; ip -n estacao-b route add default via 10.77.2.1; }
+
+ip netns exec roteador sysctl -q -w net.ipv4.ip_forward=1
+
+mkdir -p /root/captura-arp-roteador /root/relatorio-arp-roteador
+cat > /root/rede.env <<'EOF'
+estacao-a() { ip netns exec estacao-a "$@"; }
+estacao-b() { ip netns exec estacao-b "$@"; }
+roteador() { ip netns exec roteador "$@"; }
+EOF
+echo
+echo 'Duas sub-redes prontas, ligadas por um roteador com encaminhamento habilitado:'
+echo '  estacao-a = 10.77.1.10/24 (rede 10.77.1.0/24), gateway 10.77.1.1'
+echo '  estacao-b = 10.77.2.10/24 (rede 10.77.2.0/24), gateway 10.77.2.1'
+echo '  roteador  = 10.77.1.1 (interface rot-a) e 10.77.2.1 (interface rot-b)'
+echo 'Execute: source /root/rede.env'
+ip -n estacao-a addr show veth-a
+ip -n estacao-b addr show veth-b
+ip -n roteador addr show rot-a
+ip -n roteador addr show rot-b
