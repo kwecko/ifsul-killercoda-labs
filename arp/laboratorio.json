@@ -3,7 +3,7 @@
   "titulo": "Protocolo ARP: resolução de endereços em uma LAN comutada",
   "descricao": "Atividade guiada para uma sessão de até 60 minutos: requisição/resposta ARP, visibilidade de broadcast e unicast em uma LAN comutada, aprendizado, ARP gratuito, falsificação (spoofing) e entrada estática, usando três estações simuladas por namespaces de rede.",
   "imagem": "ubuntu",
-  "recebimento_ativo": false,
+  "recebimento_ativo": true,
   "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",
   "etapas": [
     {

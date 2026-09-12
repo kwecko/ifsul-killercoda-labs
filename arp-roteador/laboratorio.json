@@ -3,7 +3,7 @@
   "titulo": "ARP entre redes: o papel do roteador na entrega",
   "descricao": "Atividade guiada para uma sessão de até 60 minutos: por que uma estação resolve por ARP apenas o gateway, como o roteador refaz a resolução na rede de destino, e por que os endereços de enlace mudam a cada salto enquanto o IP permanece o mesmo — com duas sub-redes e um roteador simulados por network namespaces.",
   "imagem": "ubuntu",
-  "recebimento_ativo": false,
+  "recebimento_ativo": true,
   "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",
   "etapas": [
     {

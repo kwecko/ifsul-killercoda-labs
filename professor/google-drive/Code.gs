@@ -4,12 +4,12 @@ const LABORATORIOS = {
   "arp": {
     "titulo": "Protocolo ARP: resolução de endereços em uma LAN comutada",
     "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",
-    "recebimento_ativo": false
+    "recebimento_ativo": true
   },
   "arp-roteador": {
     "titulo": "ARP entre redes: o papel do roteador na entrega",
     "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",
-    "recebimento_ativo": false
+    "recebimento_ativo": true
   },
   "particoes-linux": {
     "titulo": "Partições, sistemas de arquivos e montagem no Linux",
