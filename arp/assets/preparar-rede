@@ -1,0 +1,44 @@
+#!/bin/bash
+set -euo pipefail
+[ "$EUID" = 0 ] || { echo 'Execute como root.'; exit 1; }
+BASE=/var/lib/lab-arp
+mkdir -p "$BASE"
+exec 9>"$BASE/preparacao.lock"
+flock -x 9
+if ! command -v tcpdump >/dev/null || ! command -v python3 >/dev/null || ! command -v ping >/dev/null || ! ip -Version >/dev/null 2>&1; then
+    echo 'Instalando ferramentas de rede. Aguarde...'
+    apt-get -o DPkg::Lock::Timeout=120 update
+    DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=120 install -y iproute2 tcpdump python3 iputils-ping
+fi
+ip link show br-lab >/dev/null 2>&1 || ip link add br-lab type bridge
+ip link set br-lab up
+for h in a b c; do
+    ns="estacao-$h"
+    # "ip netns list" pode exibir "nome (id: N)"; compare só a primeira palavra.
+    ip netns list | awk '{print $1}' | grep -qx "$ns" || ip netns add "$ns"
+    if ! ip -n "$ns" link show "veth-$h" >/dev/null 2>&1; then
+        ip link add "veth-$h" netns "$ns" type veth peer name "veth-$h-sw"
+    fi
+    ip link set "veth-$h-sw" master br-lab
+    ip link set "veth-$h-sw" up
+    ip -n "$ns" link set lo up
+    ip -n "$ns" link set "veth-$h" up
+done
+ip -n estacao-a addr show veth-a | grep -q ' 10.77.0.1/24 ' || ip -n estacao-a addr add 10.77.0.1/24 dev veth-a
+ip -n estacao-b addr show veth-b | grep -q ' 10.77.0.2/24 ' || ip -n estacao-b addr add 10.77.0.2/24 dev veth-b
+ip -n estacao-c addr show veth-c | grep -q ' 10.77.0.3/24 ' || ip -n estacao-c addr add 10.77.0.3/24 dev veth-c
+mkdir -p /root/captura-arp /root/relatorio-arp
+cat > /root/rede.env <<'EOF'
+estacao-a() { ip netns exec estacao-a "$@"; }
+estacao-b() { ip netns exec estacao-b "$@"; }
+estacao-c() { ip netns exec estacao-c "$@"; }
+EOF
+echo
+echo 'Três estações prontas, ligadas por um switch virtual (bridge):'
+echo '  estacao-a = 10.77.0.1 na interface veth-a'
+echo '  estacao-b = 10.77.0.2 na interface veth-b'
+echo '  estacao-c = 10.77.0.3 na interface veth-c'
+echo 'Execute: source /root/rede.env'
+ip -n estacao-a addr show veth-a
+ip -n estacao-b addr show veth-b
+ip -n estacao-c addr show veth-c

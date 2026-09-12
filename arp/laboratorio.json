@@ -1,0 +1,40 @@
+{
+  "id": "arp",
+  "titulo": "Protocolo ARP: resolução de endereços em uma LAN comutada",
+  "descricao": "Atividade guiada para uma sessão de até 60 minutos: requisição/resposta ARP, visibilidade de broadcast e unicast em uma LAN comutada, aprendizado, ARP gratuito, falsificação (spoofing) e entrada estática, usando três estações simuladas por namespaces de rede.",
+  "imagem": "ubuntu",
+  "recebimento_ativo": false,
+  "pasta_drive": "1a8qOKwk72bMuULU0c1Jjxr3LCXL-Xcgm",
+  "etapas": [
+    {
+      "title": "Reconhecer a topologia",
+      "text": "step1.md",
+      "verify": "assets/verify-step1.sh"
+    },
+    {
+      "title": "Observar o broadcast e a resposta unicast",
+      "text": "step2.md",
+      "verify": "assets/verify-step2.sh"
+    },
+    {
+      "title": "Aprendizado legítimo por uma terceira estação",
+      "text": "step3.md",
+      "verify": "assets/verify-step3.sh"
+    },
+    {
+      "title": "Forjar um ARP gratuito e envenenar o cache",
+      "text": "step4.md",
+      "verify": "assets/verify-step4.sh"
+    },
+    {
+      "title": "Proteger com uma entrada ARP estática",
+      "text": "step5.md",
+      "verify": "assets/verify-step5.sh"
+    },
+    {
+      "title": "Diagnóstico final e conclusão",
+      "text": "step6.md",
+      "verify": "assets/verify-step6.sh"
+    }
+  ]
+}

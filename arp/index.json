@@ -1,0 +1,111 @@
+{
+  "title": "Protocolo ARP: resolução de endereços em uma LAN comutada",
+  "description": "Atividade guiada para uma sessão de até 60 minutos: requisição/resposta ARP, visibilidade de broadcast e unicast em uma LAN comutada, aprendizado, ARP gratuito, falsificação (spoofing) e entrada estática, usando três estações simuladas por namespaces de rede.",
+  "backend": {
+    "imageid": "ubuntu"
+  },
+  "details": {
+    "intro": {
+      "text": "intro.md"
+    },
+    "finish": {
+      "text": "finish.md"
+    },
+    "steps": [
+      {
+        "title": "Identificação do aluno",
+        "text": "step0.md",
+        "verify": "assets/verify-step0.sh"
+      },
+      {
+        "title": "Reconhecer a topologia",
+        "text": "step1.md",
+        "verify": "assets/verify-step1.sh"
+      },
+      {
+        "title": "Observar o broadcast e a resposta unicast",
+        "text": "step2.md",
+        "verify": "assets/verify-step2.sh"
+      },
+      {
+        "title": "Aprendizado legítimo por uma terceira estação",
+        "text": "step3.md",
+        "verify": "assets/verify-step3.sh"
+      },
+      {
+        "title": "Forjar um ARP gratuito e envenenar o cache",
+        "text": "step4.md",
+        "verify": "assets/verify-step4.sh"
+      },
+      {
+        "title": "Proteger com uma entrada ARP estática",
+        "text": "step5.md",
+        "verify": "assets/verify-step5.sh"
+      },
+      {
+        "title": "Diagnóstico final e conclusão",
+        "text": "step6.md",
+        "verify": "assets/verify-step6.sh"
+      }
+    ],
+    "assets": {
+      "host01": [
+        {
+          "file": "identificar-aluno",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "iniciar-registro",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "gerar-comprovante",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "enviar-comprovante",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "verify-step*.sh",
+          "target": "/usr/local/lib/laboratorio/",
+          "chmod": "+x"
+        },
+        {
+          "file": "laboratorio.sh",
+          "target": "/usr/local/lib/laboratorio/"
+        },
+        {
+          "file": "laboratorio.conf",
+          "target": "/usr/local/lib/laboratorio/"
+        },
+        {
+          "file": "drive-upload-url",
+          "target": "/usr/local/lib/laboratorio/"
+        },
+        {
+          "file": "normalizar-registro.pl",
+          "target": "/usr/local/lib/laboratorio/"
+        },
+        {
+          "file": "preparar-rede",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "forjar-arp-gratuito",
+          "target": "/usr/local/bin/",
+          "chmod": "+x"
+        },
+        {
+          "file": "arp_lab.py",
+          "target": "/usr/local/lib/laboratorio/"
+        }
+      ]
+    }
+  }
+}

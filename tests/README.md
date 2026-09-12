@@ -34,3 +34,14 @@ docker run --rm --privileged -e LAB_TEST_CONTAINER=1 -v "$PWD:/lab:ro" ifsul-par
 ```
 
 O container precisa de privilégios para loop e mount. O script se recusa a executar fora do container de testes e só cria/formata imagens próprias em `/var/lib/lab-particoes`; a limpeza desmonta os volumes do exercício e desassocia apenas seus loops. Não envia dados ao Drive. Verifica as oito etapas, recusa de avanço com pendências, rótulo incorreto, ausência de arquivos/backup, somente leitura, volume ocupado, desmontagem, montagem por UUID, exclusão, recuperação e emissão. Também confere regressão no estado final, preparação idempotente e checkpoints de outra sessão.
+
+## ARP: três estações simuladas por network namespaces
+
+Em uma máquina de desenvolvimento com Docker/Linux:
+
+```bash
+docker build -f tests/Dockerfile.arp -t ifsul-arp-test .
+docker run --rm --privileged -e LAB_TEST_CONTAINER=1 -v "$PWD:/lab:ro" ifsul-arp-test bash /lab/tests/arp.sh
+```
+
+O container precisa de privilégios para criar *network namespaces*, interfaces `veth` e um bridge. O script cria apenas os três namespaces do exercício (`estacao-a`, `estacao-b`, `estacao-c`) e o bridge `br-lab`; a limpeza os remove ao final. Não envia dados ao Drive nem toca na interface de rede real do container. Verifica as seis etapas, recusa de avanço com pendências, visibilidade de broadcast/unicast em uma LAN comutada, aprendizado legítimo, envenenamento por ARP gratuito forjado (incluindo a diferença entre um pedido e uma resposta gratuita), resistência de uma entrada estática ao mesmo ataque, diagnóstico final e emissão do comprovante. Também confere checkpoints de outra sessão.
